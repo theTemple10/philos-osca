@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Providers } from "@/components/providers/session-provider";
 
@@ -6,6 +6,10 @@ export const metadata: Metadata = {
   title: "OSS Contributor - AI-Powered Open Source Contributions",
   description:
     "Automatically find, analyze, and contribute to open source projects with AI assistance.",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#4F46E5",
 };
 
 export default function RootLayout({
