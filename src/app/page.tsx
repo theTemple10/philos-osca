@@ -86,7 +86,7 @@ export default function Home() {
               </span>
             </div>
             <Button
-              onClick={() => signIn("github")}
+              onClick={() => signIn("github", { callbackUrl: "/dashboard" })}
               className="shadow-sm transition-all duration-200 hover:shadow-md hover:shadow-indigo-100 hover:-translate-y-0.5"
             >
               <GitPullRequest className="w-4 h-4 mr-2" />
@@ -117,7 +117,7 @@ export default function Home() {
           <div className="animate-fade-in-up-delay-2 mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button
               size="lg"
-              onClick={() => signIn("github")}
+              onClick={() => signIn("github", { callbackUrl: "/dashboard" })}
               className="shadow-lg shadow-indigo-200/50 transition-all duration-300 hover:shadow-xl hover:shadow-indigo-200/60 hover:-translate-y-0.5 group min-w-[200px]"
             >
               Get Started
@@ -230,7 +230,7 @@ export default function Home() {
             </p>
             <Button
               size="lg"
-              onClick={() => signIn("github")}
+              onClick={() => signIn("github", { callbackUrl: "/dashboard" })}
               className="relative bg-white text-indigo-700 hover:bg-indigo-50 shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5"
             >
               <GitPullRequest className="w-5 h-5 mr-2" />

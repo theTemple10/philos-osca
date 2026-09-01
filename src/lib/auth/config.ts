@@ -17,21 +17,10 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async session({ session, user }) {
-      if (session.user && user) {
-        (session.user as { id: string }).id = user.id;
-
-        // Fetch GitHub tokens from account
-        const account = await prisma.account.findFirst({
-          where: {
-            userId: user.id,
-            provider: "github",
-          },
-        });
-
-        if (account) {
-          (session as { accessToken?: string }).accessToken = account.access_token ?? undefined;
-        }
+    async session({ session, token }) {
+      if (session.user) {
+        (session.user as { id: string }).id = token.sub ?? "";
+        (session as { accessToken?: string }).accessToken = token.accessToken as string | undefined;
       }
       return session;
     },
