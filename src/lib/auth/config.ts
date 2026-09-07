@@ -33,16 +33,23 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account }) {
       if (account?.provider === "github" && account.access_token && user.id) {
         try {
-          await prisma.user.update({
+          await prisma.user.upsert({
             where: { id: user.id },
-            data: {
+            create: {
+              id: user.id,
+              name: user.name,
+              email: user.email,
+              image: user.image,
+              githubId: account.providerAccountId,
+              accessToken: account.access_token,
+            },
+            update: {
               accessToken: account.access_token,
               githubId: account.providerAccountId,
             },
           });
-        } catch {
-          // User may not exist yet during first sign-in; the Prisma adapter
-          // will create it. Store the token via the JWT callback instead.
+        } catch (error) {
+          console.error("[Auth] Failed to upsert user in signIn callback:", error);
         }
       }
       return true;
