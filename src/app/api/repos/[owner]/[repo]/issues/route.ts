@@ -4,7 +4,7 @@ import { fetchRepoIssues } from "@/lib/github/repos";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { owner: string; repo: string } }
+  { params }: { params: Promise<{ owner: string; repo: string }> }
 ) {
   try {
     const session = await getSession();
@@ -17,7 +17,7 @@ export async function GET(
       return NextResponse.json({ error: "No GitHub token" }, { status: 401 });
     }
 
-    const { owner, repo } = await Promise.resolve(params);
+    const { owner, repo } = await params;
     const issues = await fetchRepoIssues(token, owner, repo);
 
     return NextResponse.json({
