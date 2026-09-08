@@ -4,8 +4,9 @@ import { prisma } from "@/lib/db";
 import { z } from "zod";
 
 const updateSettingsSchema = z.object({
-  aiProvider: z.enum(["openai", "anthropic"]).optional(),
+  aiProvider: z.enum(["openai", "anthropic", "groq", "openrouter"]).optional(),
   aiModel: z.string().min(1).optional(),
+  aiApiKey: z.string().optional(),
   difficulty: z.enum(["beginner", "intermediate", "advanced", "adaptive"]).optional(),
 });
 
@@ -22,13 +23,17 @@ export async function GET() {
         preferredAiProvider: true,
         preferredAiModel: true,
         difficultyLevel: true,
+        aiApiKey: true,
+        aiProvider: true,
+        aiModel: true,
       },
     });
 
     return NextResponse.json({
-      aiProvider: user?.preferredAiProvider || "openai",
-      aiModel: user?.preferredAiModel || "gpt-4o",
+      aiProvider: user?.aiProvider || user?.preferredAiProvider || "openai",
+      aiModel: user?.aiModel || user?.preferredAiModel || "gpt-4o",
       difficulty: user?.difficultyLevel || "adaptive",
+      hasApiKey: !!user?.aiApiKey,
     });
   } catch (error) {
     console.error("Error fetching settings:", error);
@@ -52,8 +57,9 @@ export async function PUT(request: NextRequest) {
     await prisma.user.update({
       where: { id: (session.user as { id: string }).id },
       data: {
-        ...(parsed.aiProvider && { preferredAiProvider: parsed.aiProvider }),
-        ...(parsed.aiModel && { preferredAiModel: parsed.aiModel }),
+        ...(parsed.aiProvider && { aiProvider: parsed.aiProvider, preferredAiProvider: parsed.aiProvider }),
+        ...(parsed.aiModel && { aiModel: parsed.aiModel, preferredAiModel: parsed.aiModel }),
+        ...(parsed.aiApiKey !== undefined && { aiApiKey: parsed.aiApiKey || null }),
         ...(parsed.difficulty && { difficultyLevel: parsed.difficulty }),
       },
     });

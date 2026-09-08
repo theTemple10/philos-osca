@@ -67,6 +67,11 @@ model User {
   preferredAiModel    String? @default("gpt-4o")
   difficultyLevel     String? @default("adaptive") // beginner, intermediate, advanced, adaptive
 
+  // AI API Keys (per-user)
+  aiApiKey   String? @db.Text
+  aiProvider String? // "openai" | "anthropic" | "groq" | "openrouter"
+  aiModel    String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

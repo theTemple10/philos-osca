@@ -7,13 +7,18 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AVAILABLE_MODELS, AIProvider } from "@/lib/ai/providers";
-import { Settings, Save, Brain, Shield, AlertCircle } from "lucide-react";
+import { Settings, Save, Brain, Shield, Eye, EyeOff, CheckCircle } from "lucide-react";
+import { useToast } from "@/components/ui/toast";
 
 export default function SettingsPage() {
   const { status } = useSession();
   const router = useRouter();
+  const { addToast } = useToast();
   const [aiProvider, setAiProvider] = useState<AIProvider>("openai");
   const [aiModel, setAiModel] = useState("gpt-4o");
+  const [aiApiKey, setAiApiKey] = useState("");
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [hasApiKey, setHasApiKey] = useState(false);
   const [difficulty, setDifficulty] = useState("adaptive");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -26,6 +31,7 @@ export default function SettingsPage() {
       if (data.aiProvider) setAiProvider(data.aiProvider);
       if (data.aiModel) setAiModel(data.aiModel);
       if (data.difficulty) setDifficulty(data.difficulty);
+      if (data.hasApiKey) setHasApiKey(true);
     } catch {
       // use defaults
     }
@@ -48,13 +54,16 @@ export default function SettingsPage() {
       const res = await fetch("/api/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ aiProvider, aiModel, difficulty }),
+        body: JSON.stringify({ aiProvider, aiModel, aiApiKey: aiApiKey || undefined, difficulty }),
       });
       if (!res.ok) throw new Error("Failed to save");
       setSaved(true);
+      if (aiApiKey) setHasApiKey(true);
+      addToast("success", "Settings saved successfully!");
       setTimeout(() => setSaved(false), 2000);
     } catch (error) {
       console.error("Error saving settings:", error);
+      addToast("error", "Failed to save settings. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -79,12 +88,13 @@ export default function SettingsPage() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Provider Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Provider
             </label>
             <div className="grid grid-cols-2 gap-4">
-              {(["openai", "anthropic"] as AIProvider[]).map((provider) => (
+              {(["openai", "anthropic", "groq", "openrouter"] as AIProvider[]).map((provider) => (
                 <button
                   key={provider}
                   onClick={() => {
@@ -104,15 +114,17 @@ export default function SettingsPage() {
                     )}
                   </div>
                   <p className="text-sm text-gray-500 mt-1">
-                    {provider === "openai"
-                      ? "GPT-4o, GPT-4o Mini, o3-mini"
-                      : "Claude Sonnet 4, Claude 3.5 Haiku"}
+                    {provider === "openai" && "GPT-4o, GPT-4o Mini, o3-mini"}
+                    {provider === "anthropic" && "Claude Sonnet 4, Claude 3.5 Haiku"}
+                    {provider === "groq" && "Llama 3.3 70B (Free tier)"}
+                    {provider === "openrouter" && "Multi-provider aggregator"}
                   </p>
                 </button>
               ))}
             </div>
           </div>
 
+          {/* Model Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Model
@@ -140,22 +152,52 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className="p-4 bg-yellow-50 rounded-lg">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-yellow-800">
-                  API Key Required
-                </p>
-                <p className="text-sm text-yellow-700 mt-1">
-                  Make sure to set your API key in the environment variables.
-                  See{" "}
-                  <code className="bg-yellow-100 px-1 rounded">.env.example</code>{" "}
-                  for details.
-                </p>
-              </div>
+          {/* API Key Input */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              API Key
+            </label>
+            <div className="relative">
+              <input
+                type={showApiKey ? "text" : "password"}
+                value={aiApiKey}
+                onChange={(e) => setAiApiKey(e.target.value)}
+                placeholder={hasApiKey ? "••••••••••••••••••••••••" : `Enter your ${aiProvider} API key`}
+                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <button
+                type="button"
+                onClick={() => setShowApiKey(!showApiKey)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {showApiKey ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
+            <p className="mt-2 text-sm text-gray-500">
+              {hasApiKey ? (
+                <span className="flex items-center gap-1 text-green-600">
+                  <CheckCircle className="w-4 h-4" />
+                  API key is saved. Enter a new key to update.
+                </span>
+              ) : (
+                "Your API key is stored securely and never shared."
+              )}
+            </p>
           </div>
+
+          {/* Free Provider Info */}
+          {(aiProvider === "groq" || aiProvider === "openrouter") && (
+            <div className="p-4 bg-green-50 rounded-lg">
+              <p className="text-sm font-medium text-green-800">
+                {aiProvider === "groq" ? "Groq Free Tier" : "OpenRouter"}
+              </p>
+              <p className="text-sm text-green-700 mt-1">
+                {aiProvider === "groq"
+                  ? "Groq offers a generous free tier with fast inference. Get your API key at console.groq.com"
+                  : "OpenRouter provides access to multiple providers. Some models have free tiers."}
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

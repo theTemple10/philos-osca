@@ -1,5 +1,5 @@
 import { generateText } from "ai";
-import { getAIProvider, getDefaultProvider } from "./providers";
+import { getAIProvider, type AIProvider } from "./providers";
 import {
   analyzeUserSkillsPrompt,
   analyzeContributionPrompt,
@@ -53,10 +53,15 @@ export async function analyzeUserSkills(userId: string) {
     throw new Error("User not found or no GitHub access token");
   }
 
-  const providerConfig = getDefaultProvider(
-    user.preferredAiProvider,
-    user.preferredAiModel
-  );
+  if (!user.aiApiKey) {
+    throw new Error("Please set your API key in Settings to use AI features.");
+  }
+
+  const providerConfig = {
+    provider: (user.aiProvider || user.preferredAiProvider || "openai") as AIProvider,
+    model: user.aiModel || user.preferredAiModel || undefined,
+    apiKey: user.aiApiKey,
+  };
 
   const prompt = analyzeUserSkillsPrompt(
     user.repositories.map((repo) => ({
@@ -103,10 +108,15 @@ export async function analyzeContribution(
 
   if (!user) throw new Error("User not found");
 
-  const providerConfig = getDefaultProvider(
-    user.preferredAiProvider,
-    user.preferredAiModel
-  );
+  if (!user.aiApiKey) {
+    throw new Error("Please set your API key in Settings to use AI features.");
+  }
+
+  const providerConfig = {
+    provider: (user.aiProvider || user.preferredAiProvider || "openai") as AIProvider,
+    model: user.aiModel || user.preferredAiModel || undefined,
+    apiKey: user.aiApiKey,
+  };
 
   const prompt = analyzeContributionPrompt(issue, user.skillProfile as Record<string, unknown> | null, repoContext);
 
@@ -138,10 +148,15 @@ export async function generateContributionCode(
 
   if (!user) throw new Error("User not found");
 
-  const providerConfig = getDefaultProvider(
-    user.preferredAiProvider,
-    user.preferredAiModel
-  );
+  if (!user.aiApiKey) {
+    throw new Error("Please set your API key in Settings to use AI features.");
+  }
+
+  const providerConfig = {
+    provider: (user.aiProvider || user.preferredAiProvider || "openai") as AIProvider,
+    model: user.aiModel || user.preferredAiModel || undefined,
+    apiKey: user.aiApiKey,
+  };
 
   const prompt = generateCodePrompt(issue, relevantFiles, repoContext);
 
@@ -164,10 +179,15 @@ export async function findMatchingRepositories(userId: string) {
 
   if (!user) throw new Error("User not found");
 
-  const providerConfig = getDefaultProvider(
-    user.preferredAiProvider,
-    user.preferredAiModel
-  );
+  if (!user.aiApiKey) {
+    throw new Error("Please set your API key in Settings to use AI features.");
+  }
+
+  const providerConfig = {
+    provider: (user.aiProvider || user.preferredAiProvider || "openai") as AIProvider,
+    model: user.aiModel || user.preferredAiModel || undefined,
+    apiKey: user.aiApiKey,
+  };
 
   const prompt = findMatchingReposPrompt(user.skillProfile as Record<string, unknown> | null, {
     difficulty: user.difficultyLevel || undefined,

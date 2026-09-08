@@ -16,11 +16,12 @@ interface RepoCardProps {
     forksCount: number;
     topics: string[];
   };
+  matchScore?: number;
   onClick?: () => void;
   selected?: boolean;
 }
 
-export function RepoCard({ repo, onClick, selected }: RepoCardProps) {
+export function RepoCard({ repo, matchScore, onClick, selected }: RepoCardProps) {
   return (
     <Card
       className={cn(
@@ -32,7 +33,14 @@ export function RepoCard({ repo, onClick, selected }: RepoCardProps) {
       <div className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
-            <h3 className="font-medium text-gray-900 truncate">{repo.name}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-medium text-gray-900 truncate">{repo.name}</h3>
+              {matchScore !== undefined && (
+                <Badge variant={matchScore >= 0.7 ? "success" : matchScore >= 0.4 ? "warning" : "default"}>
+                  {Math.round(matchScore * 100)}% match
+                </Badge>
+              )}
+            </div>
             <p className="text-sm text-gray-500 truncate">{repo.fullName}</p>
           </div>
           <a

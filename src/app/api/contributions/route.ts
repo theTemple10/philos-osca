@@ -14,18 +14,17 @@ export async function GET() {
     const contributions = await prisma.contribution.findMany({
       where: { userId },
       orderBy: { updatedAt: "desc" },
-      select: {
-        id: true,
-        targetRepoOwner: true,
-        targetRepoName: true,
-        targetRepoUrl: true,
-        issueNumber: true,
-        issueTitle: true,
-        issueUrl: true,
-        difficulty: true,
-        skillMatch: true,
-        suggestedApproach: true,
-        status: true,
+      include: {
+        pullRequests: {
+          select: {
+            id: true,
+            githubPrNumber: true,
+            githubPrUrl: true,
+            title: true,
+            status: true,
+            createdAt: true,
+          },
+        },
       },
     });
 

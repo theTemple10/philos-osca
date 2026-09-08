@@ -3,11 +3,37 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+  --sidebar-bg: #ffffff;
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --muted: #6b7280;
+  --muted-foreground: #9ca3af;
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --card-bg: #1a1a1a;
+  --card-border: #2d2d2d;
+  --sidebar-bg: #111111;
+  --input-bg: #1a1a1a;
+  --input-border: #3d3d3d;
+  --muted: #9ca3af;
+  --muted-foreground: #6b7280;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card-bg);
+  --color-card-border: var(--card-border);
+  --color-sidebar: var(--sidebar-bg);
+  --color-input: var(--input-bg);
+  --color-input-border: var(--input-border);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
   --animate-fade-in: fade-in 0.6s ease-out both;
   --animate-fade-in-up: fade-in-up 0.6s ease-out both;
   --animate-fade-in-up-delay-1: fade-in-up 0.6s ease-out 0.1s both;
@@ -57,6 +83,11 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .glass {
+  background: rgba(26, 26, 26, 0.7);
+  border: 1px solid rgba(45, 45, 45, 0.3);
 }
 
 /* Gradient text utility */
