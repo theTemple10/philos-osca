@@ -31,37 +31,43 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-white px-4">
-      <Card className="w-full max-w-md animate-fade-in-up">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)] px-4">
+      {/* Background decoration */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-1/4 w-96 h-96 bg-[var(--accent)] rounded-full blur-[128px] opacity-[0.05] animate-pulse-glow" />
+        <div className="absolute bottom-20 right-1/4 w-80 h-80 bg-purple-500 rounded-full blur-[128px] opacity-[0.04] animate-pulse-glow" style={{ animationDelay: "1.5s" }} />
+      </div>
+
+      <Card className="w-full max-w-md animate-fade-in-up relative">
         <CardContent className="pt-8 pb-8">
           <div className="text-center">
-            <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-indigo-200 transition-transform duration-200 hover:scale-105">
+            <div className="w-16 h-16 bg-[var(--accent)] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg transition-transform duration-200 hover:scale-105">
               <GitPullRequest className="w-8 h-8 text-white" />
             </div>
 
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl font-bold text-[var(--fg-primary)] mb-2">
               Welcome to OSS Contributor
             </h1>
-            <p className="text-gray-600 mb-8 leading-relaxed">
+            <p className="text-[var(--fg-tertiary)] mb-8 leading-relaxed">
               Sign in with your GitHub account to start contributing to open
               source with AI assistance.
             </p>
 
             {githubConfigured === false && (
-              <div className="mb-6 p-4 bg-yellow-50 rounded-xl text-left border border-yellow-100">
+              <div className="mb-6 p-4 bg-[var(--color-warning-bg)] rounded-xl text-left border border-[var(--color-warning-border)]">
                 <div className="flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5 shrink-0" />
+                  <AlertCircle className="w-5 h-5 text-[var(--color-warning)] mt-0.5 shrink-0" />
                   <div className="text-sm">
-                    <p className="font-medium text-yellow-800">
+                    <p className="font-medium text-[var(--color-warning)]">
                       GitHub OAuth not configured
                     </p>
-                    <p className="text-yellow-700 mt-1">
+                    <p className="text-[var(--fg-tertiary)] mt-1">
                       Add your GitHub OAuth credentials to{" "}
-                      <code className="bg-yellow-100 px-1 rounded">
+                      <code className="bg-[var(--bg-tertiary)] px-1 rounded text-[var(--fg-primary)]">
                         .env
                       </code>{" "}
                       to enable sign-in. See{" "}
-                      <code className="bg-yellow-100 px-1 rounded">
+                      <code className="bg-[var(--bg-tertiary)] px-1 rounded text-[var(--fg-primary)]">
                         .env.example
                       </code>{" "}
                       for the required variables.
@@ -72,10 +78,10 @@ export default function LoginPage() {
             )}
 
             {error && (
-              <div className="mb-6 p-4 bg-red-50 rounded-xl text-left border border-red-100">
+              <div className="mb-6 p-4 bg-[var(--color-danger-bg)] rounded-xl text-left border border-[var(--color-danger-border)]">
                 <div className="flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 shrink-0" />
-                  <p className="text-sm text-red-700">{error}</p>
+                  <AlertCircle className="w-5 h-5 text-[var(--color-danger)] mt-0.5 shrink-0" />
+                  <p className="text-sm text-[var(--color-danger)]">{error}</p>
                 </div>
               </div>
             )}
@@ -83,7 +89,7 @@ export default function LoginPage() {
             <Button
               onClick={handleLogin}
               disabled={loading || githubConfigured === false}
-              className="w-full bg-gray-900 hover:bg-gray-800 text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5"
+              className="w-full shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5"
               size="lg"
             >
               {loading ? (
@@ -96,7 +102,7 @@ export default function LoginPage() {
                 : "Continue with GitHub"}
             </Button>
 
-            <p className="mt-6 text-sm text-gray-500 leading-relaxed">
+            <p className="mt-6 text-sm text-[var(--fg-muted)] leading-relaxed">
               We&apos;ll request access to your public profile and repositories.
               <br />
               No private data is stored without your permission.

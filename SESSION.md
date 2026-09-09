@@ -298,17 +298,73 @@ No PrismaAdapter involved. JWT handles sessions. signIn callback handles user pe
 - [x] Fixed prisma db push error
 - [x] Documented all requirements
 - [x] Analyzed architecture impact
-- [ ] Implement per-user AI key storage
-- [ ] Redesign settings page
-- [ ] Fix analyze button + proficiency display
-- [ ] Make dashboard tiles clickable
-- [ ] Improve discover page matching
-- [ ] Add issue browsing
-- [ ] Add contributions history page
-- [ ] Implement dark mode
-- [ ] Improve mobile responsiveness
-- [ ] UX polish (toasts, loading, errors)
-- [ ] Fix generated code not being committed on PR submit (pre-existing bug)
+- [x] Implement per-user AI key storage
+- [x] Redesign settings page (AI provider, difficulty, privacy)
+- [x] Fix analyze button + proficiency display
+- [x] Make dashboard tiles clickable
+- [x] Improve discover page matching (match score calculation)
+- [x] Add issue browsing (inline modal in repos page)
+- [x] Add contributions history page
+- [x] Implement dark mode (freecodecamp token-driven approach, semantic CSS variables)
+- [x] Improve mobile responsive sidebar, filter stacking, progress steps
+- [x] UX polish (toasts, loading skeletons, error boundaries per route)
+- [x] Fix generated code not being committed on PR submit
+- [x] Add ARIA labels and accessibility to all interactive elements
+- [x] Add theme preference selector in Settings page
+- [x] Remove unused @next-auth/prisma-adapter dependency
+
+### Session 3 Work (2026-09-09)
+
+#### Dark Mode Overhaul
+- Restructured globals.css with freecodecamp-inspired semantic CSS custom properties
+- Dark-first design with full token coverage for backgrounds, foregrounds, borders, accent, semantic colors
+- Updated ALL components (Card, Button, Badge, Toast, ThemeToggle) to use var() tokens
+- Fixed login page, error page, not-found page dark mode (30+ hardcoded classes replaced)
+- Landing page redesigned with animated background (grid, gradient orbs, floating icons)
+
+#### Bug Fixes
+- **PR submit files bug**: Generated code now stored in PullRequest.generatedCode during generate step, used during submit step (was sending `files: []`)
+- **Middleware gap**: Added `/history/:path*` to middleware matcher (was unprotected)
+
+#### New Features
+- Loading skeleton components (Skeleton, CardSkeleton, RepoCardSkeleton, StatCardSkeleton, DashboardSkeleton, ReposSkeleton, HistorySkeleton)
+- Per-route loading.tsx files for all dashboard pages (streaming Suspense boundaries)
+- Per-route error.tsx files for all dashboard pages (contextual error recovery)
+- Theme preference selector in Settings page (light/dark/system with visual radio buttons)
+
+#### UX Improvements
+- Toast notifications on repos discover, issue select, code generate, PR submit
+- Error toasts replacing silent console.error on repos, contribute pages
+- ARIA labels on all interactive elements (provider/model/difficulty radios, checkboxes, search, filter, close buttons)
+- Semantic HTML (ol/li for progress steps, aria-current, aria-checked)
+- Mobile responsive: filter/search bar stacks on small screens, progress step labels hidden on mobile, PR preview grid stacks on mobile
+
+#### Cleanup
+- Removed unused `@next-auth/prisma-adapter` from package.json
+
+### Remaining Work (Prioritized)
+
+#### HIGH Priority
+- [ ] Add API key format validation (client-side, e.g. sk- prefix for OpenAI)
+- [ ] Wire `findMatchingRepositories()` from analyze.ts into discover endpoint
+- [ ] Add confirmation dialogs before PR submit and contribution creation
+- [ ] Implement profile page with full skill breakdown (section 4.11)
+
+#### MEDIUM Priority
+- [ ] Add topic-based filtering UI on discover page
+- [ ] Add match score filtering (show only 70%+ matches)
+- [ ] Add "suggest desktop" banner for complex operations on mobile
+- [ ] Notification preferences in settings (section 4.2)
+- [ ] Data export/delete in settings (section 4.2)
+- [ ] GitHub account connection status in settings (section 4.2)
+- [ ] Contribution streak/stats visualization (section 4.11)
+
+#### LOW Priority (Nice-to-Have)
+- [ ] Keyboard shortcuts for power users (section 4.11)
+- [ ] Dedicated `repos/[owner]/[repo]/page.tsx` for issue browsing (vs. current inline modal)
+- [ ] Contribution guide fallback when code generation fails
+- [ ] Encrypt API keys in database (currently plaintext)
+- [ ] Rate limiting for repos sync endpoint
 
 ---
 

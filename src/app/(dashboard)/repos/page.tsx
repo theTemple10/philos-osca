@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RepoCard } from "@/components/dashboard/repo-card";
 import { Search, Loader2, Brain, RefreshCw, ExternalLink } from "lucide-react";
+import { useToast } from "@/components/ui/toast";
 
 interface DiscoveredRepo {
   id: number;
@@ -30,6 +31,7 @@ interface SkillProfile {
 export default function ReposPage() {
   const { status } = useSession();
   const router = useRouter();
+  const { addToast } = useToast();
   const [repos, setRepos] = useState<DiscoveredRepo[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -83,10 +85,12 @@ export default function ReposPage() {
     setLoading(true);
     try {
       const res = await fetch("/api/repos/discover");
+      if (!res.ok) throw new Error("Failed to discover repos");
       const data = await res.json();
       setRepos(data.repos || []);
     } catch (error) {
       console.error("Error discovering repos:", error);
+      addToast("error", "Failed to discover projects. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -202,7 +206,10 @@ export default function ReposPage() {
       });
 
       if (res.ok) {
+        addToast("success", "Contribution created! Redirecting to contribute page...");
         router.push("/contribute");
+      } else {
+        addToast("error", "Failed to create contribution. Please try again.");
       }
     } catch (error) {
       console.error("Error creating contribution:", error);
@@ -228,7 +235,7 @@ export default function ReposPage() {
       {/* Filters */}
       <Card>
         <CardContent className="py-4">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--fg-muted)]" />
               <input
@@ -236,12 +243,14 @@ export default function ReposPage() {
                 placeholder="Search repositories..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                aria-label="Search repositories"
                 className="w-full pl-10 pr-4 py-2 border border-[var(--border-strong)] rounded-lg bg-[var(--bg-input)] text-[var(--fg-primary)] placeholder:text-[var(--fg-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent transition-all"
               />
             </div>
             <select
               value={selectedLanguage || ""}
               onChange={(e) => setSelectedLanguage(e.target.value || null)}
+              aria-label="Filter by language"
               className="px-4 py-2 border border-[var(--border-strong)] rounded-lg bg-[var(--bg-input)] text-[var(--fg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent transition-all"
             >
               <option value="">All Languages</option>
@@ -273,6 +282,7 @@ export default function ReposPage() {
                 setSelectedRepo(null);
                 setIssues([]);
               }}
+              aria-label="Close issues"
               className="text-[var(--fg-muted)] hover:text-[var(--fg-primary)] transition-colors"
             >
               ×

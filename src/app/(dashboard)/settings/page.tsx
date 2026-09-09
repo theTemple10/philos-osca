@@ -7,13 +7,15 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AVAILABLE_MODELS, AIProvider } from "@/lib/ai/providers";
-import { Settings, Save, Brain, Shield, Eye, EyeOff, CheckCircle } from "lucide-react";
+import { Settings, Save, Brain, Shield, Eye, EyeOff, CheckCircle, Sun, Moon, Monitor } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
+import { useTheme } from "@/components/providers/theme-provider";
 
 export default function SettingsPage() {
   const { status } = useSession();
   const router = useRouter();
   const { addToast } = useToast();
+  const { theme, setTheme } = useTheme();
   const [aiProvider, setAiProvider] = useState<AIProvider>("openai");
   const [aiModel, setAiModel] = useState("gpt-4o");
   const [aiApiKey, setAiApiKey] = useState("");
@@ -79,6 +81,46 @@ export default function SettingsPage() {
         </p>
       </div>
 
+      {/* Theme Preference */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Monitor className="w-5 h-5 text-[var(--accent)]" />
+            <h2 className="text-lg font-semibold text-[var(--fg-primary)]">Appearance</h2>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { value: "light" as const, label: "Light", icon: Sun },
+              { value: "dark" as const, label: "Dark", icon: Moon },
+              { value: "system" as const, label: "System", icon: Monitor },
+            ].map((option) => (
+              <button
+                key={option.value}
+                onClick={() => setTheme(option.value)}
+                role="radio"
+                aria-checked={theme === option.value}
+                aria-label={`${option.label} theme`}
+                className={`p-4 rounded-lg border-2 text-left transition-all duration-200 flex items-center gap-3 ${
+                  theme === option.value
+                    ? "border-[var(--accent)] bg-[var(--accent-light)]"
+                    : "border-[var(--border-soft)] hover:border-[var(--border-strong)] bg-[var(--bg-surface)]"
+                }`}
+              >
+                <option.icon className={`w-5 h-5 ${theme === option.value ? "text-[var(--accent)]" : "text-[var(--fg-muted)]"}`} />
+                <div>
+                  <span className="font-medium text-[var(--fg-primary)]">{option.label}</span>
+                  {theme === option.value && (
+                    <Badge variant="success" className="ml-2">Active</Badge>
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* AI Provider Settings */}
       <Card>
         <CardHeader>
@@ -101,6 +143,9 @@ export default function SettingsPage() {
                     setAiProvider(provider);
                     setAiModel(AVAILABLE_MODELS[provider][0].id);
                   }}
+                  role="radio"
+                  aria-checked={aiProvider === provider}
+                  aria-label={`Select ${provider} provider`}
                   className={`p-4 rounded-lg border-2 text-left transition-all duration-200 ${
                     aiProvider === provider
                       ? "border-[var(--accent)] bg-[var(--accent-light)]"
@@ -134,6 +179,9 @@ export default function SettingsPage() {
                 <button
                   key={model.id}
                   onClick={() => setAiModel(model.id)}
+                  role="radio"
+                  aria-checked={aiModel === model.id}
+                  aria-label={`Select ${model.name} model`}
                   className={`w-full p-3 rounded-lg border text-left transition-all duration-200 ${
                     aiModel === model.id
                       ? "border-[var(--accent)] bg-[var(--accent-light)]"
@@ -168,6 +216,7 @@ export default function SettingsPage() {
               <button
                 type="button"
                 onClick={() => setShowApiKey(!showApiKey)}
+                aria-label={showApiKey ? "Hide API key" : "Show API key"}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--fg-muted)] hover:text-[var(--fg-primary)] transition-colors"
               >
                 {showApiKey ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -236,6 +285,9 @@ export default function SettingsPage() {
               <button
                 key={option.value}
                 onClick={() => setDifficulty(option.value)}
+                role="radio"
+                aria-checked={difficulty === option.value}
+                aria-label={`Select ${option.label} difficulty`}
                 className={`p-4 rounded-lg border-2 text-left transition-all duration-200 ${
                   difficulty === option.value
                     ? "border-[var(--accent)] bg-[var(--accent-light)]"
@@ -276,6 +328,8 @@ export default function SettingsPage() {
             <input
               type="checkbox"
               defaultChecked
+              id="analyze-repos"
+              aria-label="Allow AI to analyze repositories"
               className="w-5 h-5 rounded border-[var(--border-strong)] text-[var(--accent)] focus:ring-[var(--accent)] bg-[var(--bg-input)]"
             />
           </div>
@@ -289,6 +343,8 @@ export default function SettingsPage() {
             <input
               type="checkbox"
               defaultChecked
+              id="store-profile"
+              aria-label="Store skill profile"
               className="w-5 h-5 rounded border-[var(--border-strong)] text-[var(--accent)] focus:ring-[var(--accent)] bg-[var(--bg-input)]"
             />
           </div>
@@ -301,6 +357,8 @@ export default function SettingsPage() {
             </div>
             <input
               type="checkbox"
+              id="auto-submit"
+              aria-label="Auto-submit pull requests"
               className="w-5 h-5 rounded border-[var(--border-strong)] text-[var(--accent)] focus:ring-[var(--accent)] bg-[var(--bg-input)]"
             />
           </div>

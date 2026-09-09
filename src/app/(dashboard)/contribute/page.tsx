@@ -14,6 +14,7 @@ import {
   ExternalLink,
   Loader2,
 } from "lucide-react";
+import { useToast } from "@/components/ui/toast";
 
 interface Contribution {
   id: string;
@@ -44,6 +45,7 @@ interface GeneratedCode {
 export default function ContributePage() {
   const { status } = useSession();
   const router = useRouter();
+  const { addToast } = useToast();
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [selectedContribution, setSelectedContribution] =
     useState<Contribution | null>(null);
@@ -101,9 +103,13 @@ export default function ContributePage() {
       const data = await res.json();
       if (data.codeResult) {
         setGeneratedCode(data.codeResult);
+        addToast("success", "Code generated successfully! Review and submit.");
+      } else {
+        addToast("error", data.error || "Failed to generate code. Please try again.");
       }
     } catch (error) {
       console.error("Error generating code:", error);
+      addToast("error", "Failed to generate code. Please try again.");
     } finally {
       setGenerating(false);
     }
@@ -126,9 +132,13 @@ export default function ContributePage() {
       const data = await res.json();
       if (data.prUrl) {
         setPrUrl(data.prUrl);
+        addToast("success", "Pull request created successfully!");
+      } else {
+        addToast("error", data.error || "Failed to submit PR. Please try again.");
       }
     } catch (error) {
       console.error("Error submitting PR:", error);
+      addToast("error", "Failed to submit pull request. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -156,12 +166,12 @@ export default function ContributePage() {
       {/* Progress Steps */}
       <Card>
         <CardContent className="py-6">
-          <div className="flex items-center justify-between">
+          <ol className="flex items-center justify-between" aria-label="Contribution progress">
             {steps.map((step, index) => (
-              <div key={step.id} className="flex items-center">
+              <li key={step.id} className="flex items-center flex-1" aria-current={step.done ? "step" : undefined}>
                 <div className="flex items-center gap-2">
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors shrink-0 ${
                       step.done
                         ? "bg-[var(--color-success)] text-white"
                         : "bg-[var(--bg-tertiary)] text-[var(--fg-muted)]"
@@ -174,7 +184,7 @@ export default function ContributePage() {
                     )}
                   </div>
                   <span
-                    className={`text-sm font-medium ${
+                    className={`text-sm font-medium hidden sm:inline ${
                       step.done ? "text-[var(--color-success)]" : "text-[var(--fg-muted)]"
                     }`}
                   >
@@ -182,11 +192,11 @@ export default function ContributePage() {
                   </span>
                 </div>
                 {index < steps.length - 1 && (
-                  <div className="w-12 h-px bg-[var(--border-soft)] mx-4" />
+                  <div className="flex-1 h-px bg-[var(--border-soft)] mx-2 sm:mx-4" />
                 )}
-              </div>
+              </li>
             ))}
-          </div>
+          </ol>
         </CardContent>
       </Card>
 
@@ -274,7 +284,7 @@ export default function ContributePage() {
               </div>
 
               {/* PR Content */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm font-medium text-[var(--fg-secondary)] mb-1">
                     PR Title
