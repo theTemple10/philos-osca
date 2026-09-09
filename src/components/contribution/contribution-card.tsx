@@ -36,14 +36,14 @@ export function ContributionCard({
     : "Unknown";
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="hover:shadow-md transition-all duration-200 hover:border-[var(--accent-muted)]">
       <CardHeader>
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <h3 className="font-medium text-gray-900 line-clamp-2">
+            <h3 className="font-medium text-[var(--fg-primary)] line-clamp-2">
               {contribution.issueTitle || "Untitled Issue"}
             </h3>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-[var(--fg-muted)] mt-1">
               {contribution.targetRepoOwner}/{contribution.targetRepoName}
               {contribution.issueNumber && ` #${contribution.issueNumber}`}
             </p>
@@ -53,7 +53,7 @@ export function ContributionCard({
               href={contribution.issueUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-400 hover:text-gray-600"
+              className="text-[var(--fg-muted)] hover:text-[var(--fg-primary)] transition-colors"
             >
               <ExternalLink className="w-4 h-4" />
             </a>
@@ -63,35 +63,32 @@ export function ContributionCard({
 
       <CardContent>
         <div className="flex items-center gap-4 text-sm">
-          {/* Skill Match */}
           {contribution.skillMatch !== null && (
             <div className="flex items-center gap-1.5">
-              <Zap className="w-4 h-4 text-indigo-500" />
-              <span className="text-gray-600">Match:</span>
-              <span className="font-medium">
+              <Zap className="w-4 h-4 text-[var(--accent)]" />
+              <span className="text-[var(--fg-tertiary)]">Match:</span>
+              <span className="font-medium text-[var(--fg-primary)]">
                 {Math.round(contribution.skillMatch * 100)}%
               </span>
             </div>
           )}
 
-          {/* Difficulty */}
           {contribution.difficulty && (
             <div className="flex items-center gap-1.5">
-              <Clock className="w-4 h-4 text-gray-400" />
+              <Clock className="w-4 h-4 text-[var(--fg-muted)]" />
               <span className={cn("font-medium", getDifficultyColor(contribution.difficulty))}>
                 {difficultyLabel}
               </span>
             </div>
           )}
 
-          {/* Status */}
           <Badge variant={getStatusVariant(contribution.status)}>
             {contribution.status.replace("_", " ")}
           </Badge>
         </div>
 
         {contribution.suggestedApproach && (
-          <p className="mt-3 text-sm text-gray-600 line-clamp-2">
+          <p className="mt-3 text-sm text-[var(--fg-tertiary)] line-clamp-2">
             {contribution.suggestedApproach}
           </p>
         )}

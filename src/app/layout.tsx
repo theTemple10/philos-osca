@@ -11,7 +11,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#4F46E5",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#4f46e5" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b0f19" },
+  ],
 };
 
 export default function RootLayout({
@@ -21,7 +24,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="h-full antialiased" suppressHydrationWarning>
-      <body className="min-h-full flex flex-col bg-gray-50 dark:bg-gray-950">
+      <body className="min-h-full flex flex-col">
         <ThemeProvider>
           <ToastProvider>
             <Providers>{children}</Providers>

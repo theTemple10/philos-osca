@@ -73,8 +73,8 @@ export default function SettingsPage() {
     <div className="space-y-6 max-w-2xl">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-600 mt-1">
+        <h1 className="text-2xl font-bold text-[var(--fg-primary)]">Settings</h1>
+        <p className="text-[var(--fg-tertiary)] mt-1">
           Configure your AI provider and contribution preferences.
         </p>
       </div>
@@ -83,17 +83,17 @@ export default function SettingsPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Brain className="w-5 h-5 text-indigo-600" />
-            <h2 className="text-lg font-semibold">AI Provider</h2>
+            <Brain className="w-5 h-5 text-[var(--accent)]" />
+            <h2 className="text-lg font-semibold text-[var(--fg-primary)]">AI Provider</h2>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Provider Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-[var(--fg-secondary)] mb-2">
               Provider
             </label>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               {(["openai", "anthropic", "groq", "openrouter"] as AIProvider[]).map((provider) => (
                 <button
                   key={provider}
@@ -101,19 +101,19 @@ export default function SettingsPage() {
                     setAiProvider(provider);
                     setAiModel(AVAILABLE_MODELS[provider][0].id);
                   }}
-                  className={`p-4 rounded-lg border-2 text-left transition-all ${
+                  className={`p-4 rounded-lg border-2 text-left transition-all duration-200 ${
                     aiProvider === provider
-                      ? "border-indigo-500 bg-indigo-50"
-                      : "border-gray-200 hover:border-gray-300"
+                      ? "border-[var(--accent)] bg-[var(--accent-light)]"
+                      : "border-[var(--border-soft)] hover:border-[var(--border-strong)] bg-[var(--bg-surface)]"
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-medium capitalize">{provider}</span>
+                    <span className="font-medium capitalize text-[var(--fg-primary)]">{provider}</span>
                     {aiProvider === provider && (
                       <Badge variant="success">Selected</Badge>
                     )}
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-[var(--fg-muted)] mt-1">
                     {provider === "openai" && "GPT-4o, GPT-4o Mini, o3-mini"}
                     {provider === "anthropic" && "Claude Sonnet 4, Claude 3.5 Haiku"}
                     {provider === "groq" && "Llama 3.3 70B (Free tier)"}
@@ -126,7 +126,7 @@ export default function SettingsPage() {
 
           {/* Model Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-[var(--fg-secondary)] mb-2">
               Model
             </label>
             <div className="space-y-2">
@@ -134,19 +134,19 @@ export default function SettingsPage() {
                 <button
                   key={model.id}
                   onClick={() => setAiModel(model.id)}
-                  className={`w-full p-3 rounded-lg border text-left transition-all ${
+                  className={`w-full p-3 rounded-lg border text-left transition-all duration-200 ${
                     aiModel === model.id
-                      ? "border-indigo-500 bg-indigo-50"
-                      : "border-gray-200 hover:border-gray-300"
+                      ? "border-[var(--accent)] bg-[var(--accent-light)]"
+                      : "border-[var(--border-soft)] hover:border-[var(--border-strong)] bg-[var(--bg-surface)]"
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-medium">{model.name}</span>
+                    <span className="font-medium text-[var(--fg-primary)]">{model.name}</span>
                     {aiModel === model.id && (
                       <Badge variant="success">Selected</Badge>
                     )}
                   </div>
-                  <p className="text-sm text-gray-500">{model.description}</p>
+                  <p className="text-sm text-[var(--fg-muted)]">{model.description}</p>
                 </button>
               ))}
             </div>
@@ -154,7 +154,7 @@ export default function SettingsPage() {
 
           {/* API Key Input */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-[var(--fg-secondary)] mb-2">
               API Key
             </label>
             <div className="relative">
@@ -163,19 +163,19 @@ export default function SettingsPage() {
                 value={aiApiKey}
                 onChange={(e) => setAiApiKey(e.target.value)}
                 placeholder={hasApiKey ? "••••••••••••••••••••••••" : `Enter your ${aiProvider} API key`}
-                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-4 py-3 pr-12 border border-[var(--border-strong)] rounded-lg bg-[var(--bg-input)] text-[var(--fg-primary)] placeholder:text-[var(--fg-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent transition-all"
               />
               <button
                 type="button"
                 onClick={() => setShowApiKey(!showApiKey)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--fg-muted)] hover:text-[var(--fg-primary)] transition-colors"
               >
                 {showApiKey ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-[var(--fg-muted)]">
               {hasApiKey ? (
-                <span className="flex items-center gap-1 text-green-600">
+                <span className="flex items-center gap-1 text-[var(--color-success)]">
                   <CheckCircle className="w-4 h-4" />
                   API key is saved. Enter a new key to update.
                 </span>
@@ -187,11 +187,11 @@ export default function SettingsPage() {
 
           {/* Free Provider Info */}
           {(aiProvider === "groq" || aiProvider === "openrouter") && (
-            <div className="p-4 bg-green-50 rounded-lg">
-              <p className="text-sm font-medium text-green-800">
+            <div className="p-4 bg-[var(--color-success-bg)] rounded-lg border border-[var(--color-success-border)]">
+              <p className="text-sm font-medium text-[var(--color-success)]">
                 {aiProvider === "groq" ? "Groq Free Tier" : "OpenRouter"}
               </p>
-              <p className="text-sm text-green-700 mt-1">
+              <p className="text-sm text-[var(--fg-tertiary)] mt-1">
                 {aiProvider === "groq"
                   ? "Groq offers a generous free tier with fast inference. Get your API key at console.groq.com"
                   : "OpenRouter provides access to multiple providers. Some models have free tiers."}
@@ -205,12 +205,12 @@ export default function SettingsPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Settings className="w-5 h-5 text-gray-600" />
-            <h2 className="text-lg font-semibold">Difficulty Level</h2>
+            <Settings className="w-5 h-5 text-[var(--fg-tertiary)]" />
+            <h2 className="text-lg font-semibold text-[var(--fg-primary)]">Difficulty Level</h2>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             {[
               {
                 value: "beginner",
@@ -236,19 +236,19 @@ export default function SettingsPage() {
               <button
                 key={option.value}
                 onClick={() => setDifficulty(option.value)}
-                className={`p-4 rounded-lg border-2 text-left transition-all ${
+                className={`p-4 rounded-lg border-2 text-left transition-all duration-200 ${
                   difficulty === option.value
-                    ? "border-indigo-500 bg-indigo-50"
-                    : "border-gray-200 hover:border-gray-300"
+                    ? "border-[var(--accent)] bg-[var(--accent-light)]"
+                    : "border-[var(--border-soft)] hover:border-[var(--border-strong)] bg-[var(--bg-surface)]"
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-medium">{option.label}</span>
+                  <span className="font-medium text-[var(--fg-primary)]">{option.label}</span>
                   {difficulty === option.value && (
                     <Badge variant="success">Selected</Badge>
                   )}
                 </div>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-[var(--fg-muted)] mt-1">
                   {option.description}
                 </p>
               </button>
@@ -261,47 +261,47 @@ export default function SettingsPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-green-600" />
-            <h2 className="text-lg font-semibold">Privacy & Data</h2>
+            <Shield className="w-5 h-5 text-[var(--color-success)]" />
+            <h2 className="text-lg font-semibold text-[var(--fg-primary)]">Privacy & Data</h2>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between py-2">
             <div>
-              <p className="font-medium">Analyze Repositories</p>
-              <p className="text-sm text-gray-500">
+              <p className="font-medium text-[var(--fg-primary)]">Analyze Repositories</p>
+              <p className="text-sm text-[var(--fg-muted)]">
                 Allow AI to read your public repositories for skill analysis
               </p>
             </div>
             <input
               type="checkbox"
               defaultChecked
-              className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              className="w-5 h-5 rounded border-[var(--border-strong)] text-[var(--accent)] focus:ring-[var(--accent)] bg-[var(--bg-input)]"
             />
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between py-2 border-t border-[var(--border-soft)]">
             <div>
-              <p className="font-medium">Store Skill Profile</p>
-              <p className="text-sm text-gray-500">
+              <p className="font-medium text-[var(--fg-primary)]">Store Skill Profile</p>
+              <p className="text-sm text-[var(--fg-muted)]">
                 Save your skill profile for faster recommendations
               </p>
             </div>
             <input
               type="checkbox"
               defaultChecked
-              className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              className="w-5 h-5 rounded border-[var(--border-strong)] text-[var(--accent)] focus:ring-[var(--accent)] bg-[var(--bg-input)]"
             />
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between py-2 border-t border-[var(--border-soft)]">
             <div>
-              <p className="font-medium">Auto-Submit PRs</p>
-              <p className="text-sm text-gray-500">
+              <p className="font-medium text-[var(--fg-primary)]">Auto-Submit PRs</p>
+              <p className="text-sm text-[var(--fg-muted)]">
                 Skip review step for simple changes (not recommended)
               </p>
             </div>
             <input
               type="checkbox"
-              className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              className="w-5 h-5 rounded border-[var(--border-strong)] text-[var(--accent)] focus:ring-[var(--accent)] bg-[var(--bg-input)]"
             />
           </div>
         </CardContent>
@@ -309,7 +309,7 @@ export default function SettingsPage() {
 
       {/* Save Button */}
       <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={saving}>
+        <Button onClick={handleSave} disabled={saving} size="lg">
           {saving ? (
             <>
               <span className="animate-spin mr-2">⏳</span>

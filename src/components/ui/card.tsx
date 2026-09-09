@@ -8,7 +8,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
     <div
       ref={ref}
       className={cn(
-        "bg-white rounded-xl border border-gray-200 shadow-sm",
+        "rounded-xl border border-[var(--border-soft)] bg-[var(--bg-surface)] shadow-[var(--shadow-sm)]",
         className
       )}
       {...props}
@@ -24,7 +24,7 @@ const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("px-6 py-4 border-b border-gray-200", className)}
+      className={cn("px-6 py-4 border-b border-[var(--border-soft)]", className)}
       {...props}
     />
   )
@@ -48,7 +48,7 @@ const CardFooter = forwardRef<HTMLDivElement, CardFooterProps>(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("px-6 py-4 border-t border-gray-200", className)}
+      className={cn("px-6 py-4 border-t border-[var(--border-soft)]", className)}
       {...props}
     />
   )

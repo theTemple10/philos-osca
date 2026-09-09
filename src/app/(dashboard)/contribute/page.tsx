@@ -134,7 +134,6 @@ export default function ContributePage() {
     }
   }
 
-  // Step indicator
   const steps = [
     { id: 1, name: "Select Issue", done: !!selectedContribution },
     { id: 2, name: "Generate Code", done: !!generatedCode },
@@ -146,10 +145,10 @@ export default function ContributePage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-[var(--fg-primary)]">
           Contribution Workflow
         </h1>
-        <p className="text-gray-600 mt-1">
+        <p className="text-[var(--fg-tertiary)] mt-1">
           Select an issue, generate code, review, and submit your contribution.
         </p>
       </div>
@@ -162,10 +161,10 @@ export default function ContributePage() {
               <div key={step.id} className="flex items-center">
                 <div className="flex items-center gap-2">
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
                       step.done
-                        ? "bg-green-500 text-white"
-                        : "bg-gray-200 text-gray-600"
+                        ? "bg-[var(--color-success)] text-white"
+                        : "bg-[var(--bg-tertiary)] text-[var(--fg-muted)]"
                     }`}
                   >
                     {step.done ? (
@@ -176,14 +175,14 @@ export default function ContributePage() {
                   </div>
                   <span
                     className={`text-sm font-medium ${
-                      step.done ? "text-green-600" : "text-gray-500"
+                      step.done ? "text-[var(--color-success)]" : "text-[var(--fg-muted)]"
                     }`}
                   >
                     {step.name}
                   </span>
                 </div>
                 {index < steps.length - 1 && (
-                  <div className="w-12 h-px bg-gray-300 mx-4" />
+                  <div className="w-12 h-px bg-[var(--border-soft)] mx-4" />
                 )}
               </div>
             ))}
@@ -193,17 +192,17 @@ export default function ContributePage() {
 
       {/* PR Success */}
       {prUrl && (
-        <Card className="border-green-200 bg-green-50">
+        <Card className="border-[var(--color-success-border)] bg-[var(--color-success-bg)]">
           <CardContent className="py-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-green-600" />
+              <div className="w-12 h-12 bg-[var(--color-success)]/10 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-6 h-6 text-[var(--color-success)]" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-green-900">
+                <h3 className="font-semibold text-[var(--color-success)]">
                   Pull Request Created!
                 </h3>
-                <p className="text-green-700">
+                <p className="text-[var(--fg-tertiary)]">
                   Your contribution has been submitted. View it on GitHub.
                 </p>
               </div>
@@ -227,7 +226,7 @@ export default function ContributePage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Generated Code</h3>
+              <h3 className="text-lg font-semibold text-[var(--fg-primary)]">Generated Code</h3>
               <Badge variant="success">Ready for Review</Badge>
             </div>
           </CardHeader>
@@ -235,24 +234,24 @@ export default function ContributePage() {
             <div className="space-y-4">
               {/* Commit Message */}
               <div>
-                <p className="text-sm font-medium text-gray-700 mb-1">
+                <p className="text-sm font-medium text-[var(--fg-secondary)] mb-1">
                   Commit Message
                 </p>
-                <code className="block p-3 bg-gray-50 rounded-lg text-sm">
+                <code className="block p-3 bg-[var(--bg-tertiary)] rounded-lg text-sm text-[var(--fg-primary)]">
                   {generatedCode.commitMessage}
                 </code>
               </div>
 
               {/* Files */}
               <div>
-                <p className="text-sm font-medium text-gray-700 mb-2">
+                <p className="text-sm font-medium text-[var(--fg-secondary)] mb-2">
                   Files Changed ({generatedCode.files.length})
                 </p>
                 <div className="space-y-2">
                   {generatedCode.files.map((file) => (
                     <div
                       key={file.path}
-                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                      className="flex items-center gap-3 p-3 bg-[var(--bg-tertiary)] rounded-lg"
                     >
                       <Badge
                         variant={
@@ -265,8 +264,8 @@ export default function ContributePage() {
                       >
                         {file.action}
                       </Badge>
-                      <code className="text-sm flex-1">{file.path}</code>
-                      <p className="text-xs text-gray-500 max-w-xs truncate">
+                      <code className="text-sm flex-1 text-[var(--fg-primary)]">{file.path}</code>
+                      <p className="text-xs text-[var(--fg-muted)] max-w-xs truncate">
                         {file.explanation}
                       </p>
                     </div>
@@ -277,18 +276,18 @@ export default function ContributePage() {
               {/* PR Content */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm font-medium text-gray-700 mb-1">
+                  <p className="text-sm font-medium text-[var(--fg-secondary)] mb-1">
                     PR Title
                   </p>
-                  <p className="p-3 bg-gray-50 rounded-lg text-sm">
+                  <p className="p-3 bg-[var(--bg-tertiary)] rounded-lg text-sm text-[var(--fg-primary)]">
                     {generatedCode.prTitle}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-700 mb-1">
+                  <p className="text-sm font-medium text-[var(--fg-secondary)] mb-1">
                     PR Description
                   </p>
-                  <p className="p-3 bg-gray-50 rounded-lg text-sm line-clamp-3">
+                  <p className="p-3 bg-[var(--bg-tertiary)] rounded-lg text-sm text-[var(--fg-primary)] line-clamp-3">
                     {generatedCode.prBody}
                   </p>
                 </div>
@@ -318,18 +317,18 @@ export default function ContributePage() {
 
       {/* Contribution List */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <h2 className="text-lg font-semibold text-[var(--fg-primary)] mb-4">
           Available Contributions
         </h2>
         {loading ? (
           <div className="flex items-center justify-center h-64">
-            <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+            <Loader2 className="w-8 h-8 animate-spin text-[var(--accent)]" />
           </div>
         ) : contributions.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
-              <Code className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500">
+              <Code className="w-12 h-12 text-[var(--fg-muted)] mx-auto mb-4 opacity-50" />
+              <p className="text-[var(--fg-muted)]">
                 No contributions discovered yet. Go to Discover to find projects.
               </p>
               <Button className="mt-4" onClick={() => router.push("/repos")}>
@@ -357,11 +356,11 @@ export default function ContributePage() {
         <Card>
           <CardContent className="py-12">
             <div className="text-center">
-              <Loader2 className="w-12 h-12 animate-spin text-indigo-600 mx-auto mb-4" />
-              <p className="text-lg font-medium text-gray-900">
+              <Loader2 className="w-12 h-12 animate-spin text-[var(--accent)] mx-auto mb-4" />
+              <p className="text-lg font-medium text-[var(--fg-primary)]">
                 Generating Code...
               </p>
-              <p className="text-gray-500 mt-1">
+              <p className="text-[var(--fg-muted)] mt-1">
                 AI is analyzing the issue and creating a solution
               </p>
             </div>

@@ -11,14 +11,14 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "primary", size = "md", isLoading, children, disabled, ...props }, ref) => {
-    const baseStyles = "inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
+    const baseStyles = "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
 
     const variants = {
-      primary: "bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500",
-      secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500",
-      outline: "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-indigo-500",
-      ghost: "text-gray-700 hover:bg-gray-100 focus:ring-gray-500",
-      danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
+      primary: "bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)] shadow-sm hover:shadow-md",
+      secondary: "bg-[var(--bg-tertiary)] text-[var(--fg-secondary)] hover:bg-[var(--border-soft)]",
+      outline: "border border-[var(--border-strong)] bg-transparent text-[var(--fg-secondary)] hover:bg-[var(--bg-tertiary)]",
+      ghost: "text-[var(--fg-tertiary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--fg-primary)]",
+      danger: "bg-[var(--color-danger)] text-white hover:opacity-90 shadow-sm",
     };
 
     const sizes = {

@@ -100,7 +100,7 @@ export default function HistoryPage() {
   if (status === "loading" || loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-[var(--accent)]" />
       </div>
     );
   }
@@ -109,8 +109,8 @@ export default function HistoryPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Contribution History</h1>
-        <p className="text-gray-600 mt-1">
+        <h1 className="text-2xl font-bold text-[var(--fg-primary)]">Contribution History</h1>
+        <p className="text-[var(--fg-tertiary)] mt-1">
           Track your open source contributions and pull requests.
         </p>
       </div>
@@ -119,26 +119,26 @@ export default function HistoryPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-4">
-            <p className="text-2xl font-bold">{stats.total}</p>
-            <p className="text-sm text-gray-500">Total Contributions</p>
+            <p className="text-2xl font-bold text-[var(--fg-primary)]">{stats.total}</p>
+            <p className="text-sm text-[var(--fg-muted)]">Total Contributions</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
-            <p className="text-2xl font-bold text-blue-600">{stats.active}</p>
-            <p className="text-sm text-gray-500">Active</p>
+            <p className="text-2xl font-bold text-[var(--color-info)]">{stats.active}</p>
+            <p className="text-sm text-[var(--fg-muted)]">Active</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
-            <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
-            <p className="text-sm text-gray-500">Completed</p>
+            <p className="text-2xl font-bold text-[var(--color-success)]">{stats.completed}</p>
+            <p className="text-sm text-[var(--fg-muted)]">Completed</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
-            <p className="text-2xl font-bold text-purple-600">{stats.prs}</p>
-            <p className="text-sm text-gray-500">Pull Requests</p>
+            <p className="text-2xl font-bold text-[var(--accent)]">{stats.prs}</p>
+            <p className="text-sm text-[var(--fg-muted)]">Pull Requests</p>
           </CardContent>
         </Card>
       </div>
@@ -166,8 +166,8 @@ export default function HistoryPage() {
       {filteredContributions.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <GitPullRequest className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">
+            <GitPullRequest className="w-12 h-12 text-[var(--fg-muted)] mx-auto mb-4 opacity-50" />
+            <p className="text-[var(--fg-muted)]">
               {contributions.length === 0
                 ? "No contributions yet. Start by discovering projects!"
                 : "No contributions match the selected filter."}
@@ -182,12 +182,12 @@ export default function HistoryPage() {
           {filteredContributions.map((contribution) => {
             const statusInfo = statusConfig[contribution.status] || statusConfig.discovered;
             return (
-              <Card key={contribution.id}>
+              <Card key={contribution.id} className="hover:shadow-md transition-all duration-200">
                 <CardContent className="py-4">
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-medium text-gray-900">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-medium text-[var(--fg-primary)]">
                           {contribution.targetRepoName}
                         </h3>
                         <Badge variant={statusInfo.color as "default" | "success" | "warning" | "error" | "info"}>
@@ -199,11 +199,11 @@ export default function HistoryPage() {
                         )}
                       </div>
                       {contribution.issueTitle && (
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-sm text-[var(--fg-tertiary)] mt-1">
                           #{contribution.issueNumber}: {contribution.issueTitle}
                         </p>
                       )}
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className="text-xs text-[var(--fg-muted)] mt-1">
                         {new Date(contribution.createdAt).toLocaleDateString()}
                       </p>
                     </div>
@@ -212,7 +212,7 @@ export default function HistoryPage() {
                         href={contribution.targetRepoUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-gray-400 hover:text-gray-600"
+                        className="text-[var(--fg-muted)] hover:text-[var(--fg-primary)] transition-colors"
                       >
                         <ExternalLink className="w-4 h-4" />
                       </a>
@@ -221,19 +221,19 @@ export default function HistoryPage() {
 
                   {/* Pull Requests */}
                   {contribution.pullRequests.length > 0 && (
-                    <div className="mt-3 pt-3 border-t border-gray-100">
-                      <p className="text-xs font-medium text-gray-500 mb-2">
+                    <div className="mt-3 pt-3 border-t border-[var(--border-soft)]">
+                      <p className="text-xs font-medium text-[var(--fg-muted)] mb-2">
                         Pull Requests ({contribution.pullRequests.length})
                       </p>
                       <div className="space-y-2">
                         {contribution.pullRequests.map((pr) => (
                           <div
                             key={pr.id}
-                            className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+                            className="flex items-center justify-between p-2 bg-[var(--bg-tertiary)] rounded-lg"
                           >
                             <div className="flex items-center gap-2">
-                              <GitPullRequest className="w-4 h-4 text-gray-400" />
-                              <span className="text-sm text-gray-700">
+                              <GitPullRequest className="w-4 h-4 text-[var(--fg-muted)]" />
+                              <span className="text-sm text-[var(--fg-secondary)]">
                                 PR #{pr.githubPrNumber}: {pr.title}
                               </span>
                             </div>
@@ -242,7 +242,7 @@ export default function HistoryPage() {
                                 href={pr.githubPrUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-indigo-600 hover:text-indigo-800 text-sm"
+                                className="text-[var(--accent)] hover:text-[var(--accent-hover)] text-sm transition-colors"
                               >
                                 View
                               </a>

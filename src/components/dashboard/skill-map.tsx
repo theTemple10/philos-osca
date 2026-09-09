@@ -25,10 +25,10 @@ export function SkillMap({ skillProfile }: SkillMapProps) {
     return (
       <Card>
         <CardHeader>
-          <h3 className="text-lg font-semibold">Skill Profile</h3>
+          <h3 className="text-lg font-semibold text-[var(--fg-primary)]">Skill Profile</h3>
         </CardHeader>
         <CardContent>
-          <p className="text-gray-500">
+          <p className="text-[var(--fg-muted)]">
             Analyze your repositories to generate your skill profile.
           </p>
         </CardContent>
@@ -40,8 +40,8 @@ export function SkillMap({ skillProfile }: SkillMapProps) {
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Skill Profile</h3>
-          <span className="text-sm text-gray-500">
+          <h3 className="text-lg font-semibold text-[var(--fg-primary)]">Skill Profile</h3>
+          <span className="text-sm text-[var(--fg-muted)]">
             {skillProfile.experienceLevel} • {skillProfile.primaryFocus}
           </span>
         </div>
@@ -49,16 +49,16 @@ export function SkillMap({ skillProfile }: SkillMapProps) {
       <CardContent className="space-y-6">
         {/* Languages */}
         <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-3">Languages</h4>
+          <h4 className="text-sm font-medium text-[var(--fg-secondary)] mb-3">Languages</h4>
           <div className="space-y-2">
             {skillProfile.languages?.slice(0, 8).map((lang) => (
               <div key={lang.name} className="flex items-center gap-3">
                 <div
-                  className="w-3 h-3 rounded-full"
+                  className="w-3 h-3 rounded-full shrink-0"
                   style={{ backgroundColor: getLanguageColor(lang.name) }}
                 />
-                <span className="text-sm w-24">{lang.name}</span>
-                <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                <span className="text-sm w-24 text-[var(--fg-primary)]">{lang.name}</span>
+                <div className="flex-1 h-2 bg-[var(--bg-tertiary)] rounded-full overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-500"
                     style={{
@@ -67,7 +67,7 @@ export function SkillMap({ skillProfile }: SkillMapProps) {
                     }}
                   />
                 </div>
-                <span className="text-xs text-gray-500 w-12 text-right">
+                <span className="text-xs text-[var(--fg-muted)] w-12 text-right">
                   {Math.round(lang.proficiency * 100)}%
                 </span>
               </div>
@@ -78,12 +78,12 @@ export function SkillMap({ skillProfile }: SkillMapProps) {
         {/* Frameworks */}
         {skillProfile.frameworks && skillProfile.frameworks.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-2">Frameworks</h4>
+            <h4 className="text-sm font-medium text-[var(--fg-secondary)] mb-2">Frameworks</h4>
             <div className="flex flex-wrap gap-2">
               {skillProfile.frameworks.map((framework) => (
                 <span
                   key={framework}
-                  className="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-md text-sm"
+                  className="px-2.5 py-1 bg-[var(--accent-light)] text-[var(--accent)] rounded-md text-sm"
                 >
                   {framework}
                 </span>
@@ -95,10 +95,10 @@ export function SkillMap({ skillProfile }: SkillMapProps) {
         {/* Strengths & Weaknesses */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-2">Strengths</h4>
+            <h4 className="text-sm font-medium text-[var(--fg-secondary)] mb-2">Strengths</h4>
             <ul className="space-y-1">
               {skillProfile.strengths?.map((strength) => (
-                <li key={strength} className="text-sm text-green-600 flex items-center gap-2">
+                <li key={strength} className="text-sm text-[var(--color-success)] flex items-center gap-2">
                   <span>✓</span>
                   {strength}
                 </li>
@@ -106,10 +106,10 @@ export function SkillMap({ skillProfile }: SkillMapProps) {
             </ul>
           </div>
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-2">Areas to Improve</h4>
+            <h4 className="text-sm font-medium text-[var(--fg-secondary)] mb-2">Areas to Improve</h4>
             <ul className="space-y-1">
               {skillProfile.weaknesses?.map((weakness) => (
-                <li key={weakness} className="text-sm text-orange-600 flex items-center gap-2">
+                <li key={weakness} className="text-sm text-[var(--color-warning)] flex items-center gap-2">
                   <span>→</span>
                   {weakness}
                 </li>

@@ -114,7 +114,6 @@ export default function ReposPage() {
     const userLanguages = skillProfile.languages.map((l) => l.name.toLowerCase());
     const userFrameworks = (skillProfile.frameworks || []).map((f) => f.toLowerCase());
 
-    // Language match (40% weight)
     if (repo.language) {
       const repoLang = repo.language.toLowerCase();
       if (userLanguages.includes(repoLang)) {
@@ -122,7 +121,6 @@ export default function ReposPage() {
       }
     }
 
-    // Topic/framework match (30% weight)
     if (repo.topics?.length > 0) {
       const repoTopics = repo.topics.map((t) => t.toLowerCase());
       const matchingTopics = repoTopics.filter(
@@ -133,12 +131,10 @@ export default function ReposPage() {
       }
     }
 
-    // Stars/popularity bonus (15% weight)
     if (repo.stargazers_count > 1000) score += 0.15;
     else if (repo.stargazers_count > 100) score += 0.1;
     else if (repo.stargazers_count > 10) score += 0.05;
 
-    // Has good first issues (15% weight)
     if (repo.topics?.includes("good-first-issue") || repo.topics?.includes("beginner")) {
       score += 0.15;
     }
@@ -218,8 +214,8 @@ export default function ReposPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Discover Projects</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-2xl font-bold text-[var(--fg-primary)]">Discover Projects</h1>
+          <p className="text-[var(--fg-tertiary)] mt-1">
             Find open source repositories that match your skills
           </p>
         </div>
@@ -234,19 +230,19 @@ export default function ReposPage() {
         <CardContent className="py-4">
           <div className="flex items-center gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--fg-muted)]" />
               <input
                 type="text"
                 placeholder="Search repositories..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full pl-10 pr-4 py-2 border border-[var(--border-strong)] rounded-lg bg-[var(--bg-input)] text-[var(--fg-primary)] placeholder:text-[var(--fg-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent transition-all"
               />
             </div>
             <select
               value={selectedLanguage || ""}
               onChange={(e) => setSelectedLanguage(e.target.value || null)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="px-4 py-2 border border-[var(--border-strong)] rounded-lg bg-[var(--bg-input)] text-[var(--fg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent transition-all"
             >
               <option value="">All Languages</option>
               {languages.map((lang) => (
@@ -261,13 +257,13 @@ export default function ReposPage() {
 
       {/* Issues Modal */}
       {showIssues && selectedRepo && (
-        <Card className="border-2 border-indigo-200">
-          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+        <Card className="border-2 border-[var(--accent-muted)]">
+          <div className="p-4 border-b border-[var(--border-soft)] flex items-center justify-between">
             <div>
-              <h3 className="font-semibold text-gray-900">
+              <h3 className="font-semibold text-[var(--fg-primary)]">
                 Issues in {selectedRepo.name}
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-[var(--fg-muted)]">
                 Select an issue to start contributing
               </p>
             </div>
@@ -277,7 +273,7 @@ export default function ReposPage() {
                 setSelectedRepo(null);
                 setIssues([]);
               }}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-[var(--fg-muted)] hover:text-[var(--fg-primary)] transition-colors"
             >
               ×
             </button>
@@ -285,27 +281,27 @@ export default function ReposPage() {
           <CardContent className="max-h-96 overflow-y-auto">
             {loadingIssues ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
+                <Loader2 className="w-6 h-6 animate-spin text-[var(--accent)]" />
               </div>
             ) : issues.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-gray-500">No open issues found</p>
+                <p className="text-[var(--fg-muted)]">No open issues found</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {issues.map((issue) => (
                   <div
                     key={issue.number}
-                    className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+                    className="p-3 border border-[var(--border-soft)] rounded-lg hover:bg-[var(--bg-tertiary)] cursor-pointer transition-colors"
                     onClick={() => selectIssue(issue)}
                   >
                     <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-[var(--fg-primary)]">
                           #{issue.number}: {issue.title}
                         </p>
                         {issue.body && (
-                          <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                          <p className="text-sm text-[var(--fg-muted)] mt-1 line-clamp-2">
                             {issue.body}
                           </p>
                         )}
@@ -314,7 +310,7 @@ export default function ReposPage() {
                         href={issue.html_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-gray-400 hover:text-gray-600 ml-2"
+                        className="text-[var(--fg-muted)] hover:text-[var(--fg-primary)] ml-2 transition-colors"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <ExternalLink className="w-4 h-4" />
@@ -340,7 +336,7 @@ export default function ReposPage() {
       {/* My Repos Section */}
       {myRepos.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <h2 className="text-lg font-semibold text-[var(--fg-primary)] mb-4">
             Your Repositories
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -365,7 +361,7 @@ export default function ReposPage() {
 
       {/* Discovered Repos */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <h2 className="text-lg font-semibold text-[var(--fg-primary)] mb-4">
           Suggested Projects
           {skillProfile && (
             <Badge variant="info" className="ml-2">
@@ -375,13 +371,13 @@ export default function ReposPage() {
         </h2>
         {loading ? (
           <div className="flex items-center justify-center h-64">
-            <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+            <Loader2 className="w-8 h-8 animate-spin text-[var(--accent)]" />
           </div>
         ) : filteredRepos.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
-              <Brain className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500">
+              <Brain className="w-12 h-12 text-[var(--fg-muted)] mx-auto mb-4 opacity-50" />
+              <p className="text-[var(--fg-muted)]">
                 {repos.length === 0
                   ? "Analyzing your skills to find matching projects..."
                   : "No repositories match your filters."}

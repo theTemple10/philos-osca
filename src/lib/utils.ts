@@ -47,32 +47,32 @@ export function getLanguageColor(language: string | null): string {
 }
 
 /**
- * Get difficulty color
+ * Get difficulty color using semantic tokens
  */
 export function getDifficultyColor(difficulty: string): string {
   const colors: Record<string, string> = {
-    easy: "text-green-500",
-    medium: "text-yellow-500",
-    hard: "text-red-500",
+    easy: "text-[var(--color-success)]",
+    medium: "text-[var(--color-warning)]",
+    hard: "text-[var(--color-danger)]",
   };
 
-  return colors[difficulty.toLowerCase()] || "text-gray-500";
+  return colors[difficulty.toLowerCase()] || "text-[var(--fg-muted)]";
 }
 
 /**
- * Get status color
+ * Get status color using semantic tokens
  */
 export function getStatusColor(status: string): string {
   const colors: Record<string, string> = {
-    discovered: "bg-blue-100 text-blue-800",
-    selected: "bg-purple-100 text-purple-800",
-    analyzing: "bg-yellow-100 text-yellow-800",
-    coding: "bg-orange-100 text-orange-800",
-    reviewing: "bg-cyan-100 text-cyan-800",
-    pr_created: "bg-green-100 text-green-800",
-    merged: "bg-emerald-100 text-emerald-800",
-    declined: "bg-red-100 text-red-800",
+    discovered: "bg-[var(--color-info-bg)] text-[var(--color-info)]",
+    selected: "bg-[var(--accent-light)] text-[var(--accent)]",
+    analyzing: "bg-[var(--color-warning-bg)] text-[var(--color-warning)]",
+    coding: "bg-[var(--color-warning-bg)] text-[var(--color-warning)]",
+    reviewing: "bg-[var(--color-info-bg)] text-[var(--color-info)]",
+    pr_created: "bg-[var(--color-success-bg)] text-[var(--color-success)]",
+    merged: "bg-[var(--color-success-bg)] text-[var(--color-success)]",
+    declined: "bg-[var(--color-danger-bg)] text-[var(--color-danger)]",
   };
 
-  return colors[status] || "bg-gray-100 text-gray-800";
+  return colors[status] || "bg-[var(--bg-tertiary)] text-[var(--fg-muted)]";
 }

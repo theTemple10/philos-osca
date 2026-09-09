@@ -34,17 +34,17 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const icons = {
-    success: <CheckCircle className="w-5 h-5 text-green-500" />,
-    error: <AlertCircle className="w-5 h-5 text-red-500" />,
-    info: <Info className="w-5 h-5 text-blue-500" />,
-    warning: <AlertTriangle className="w-5 h-5 text-yellow-500" />,
+    success: <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />,
+    error: <AlertCircle className="w-5 h-5 text-[var(--color-danger)]" />,
+    info: <Info className="w-5 h-5 text-[var(--color-info)]" />,
+    warning: <AlertTriangle className="w-5 h-5 text-[var(--color-warning)]" />,
   };
 
   const bgColors = {
-    success: "bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800",
-    error: "bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800",
-    info: "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800",
-    warning: "bg-yellow-50 dark:bg-yellow-900/30 border-yellow-200 dark:border-yellow-800",
+    success: "bg-[var(--color-success-bg)] border-[var(--color-success-border)]",
+    error: "bg-[var(--color-danger-bg)] border-[var(--color-danger-border)]",
+    info: "bg-[var(--color-info-bg)] border-[var(--color-info-border)]",
+    warning: "bg-[var(--color-warning-bg)] border-[var(--color-warning-border)]",
   };
 
   return (
@@ -60,12 +60,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             )}
           >
             {icons[toast.type]}
-            <p className="text-sm text-gray-900 dark:text-gray-100 flex-1">
+            <p className="text-sm text-[var(--fg-primary)] flex-1">
               {toast.message}
             </p>
             <button
               onClick={() => removeToast(toast.id)}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+              className="text-[var(--fg-muted)] hover:text-[var(--fg-primary)] transition-colors"
             >
               <X className="w-4 h-4" />
             </button>

@@ -25,8 +25,8 @@ export function RepoCard({ repo, matchScore, onClick, selected }: RepoCardProps)
   return (
     <Card
       className={cn(
-        "cursor-pointer transition-all hover:shadow-md",
-        selected && "ring-2 ring-indigo-500"
+        "cursor-pointer transition-all duration-200 hover:shadow-md hover:border-[var(--accent-muted)]",
+        selected && "ring-2 ring-[var(--accent)]"
       )}
       onClick={onClick}
     >
@@ -34,20 +34,20 @@ export function RepoCard({ repo, matchScore, onClick, selected }: RepoCardProps)
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className="font-medium text-gray-900 truncate">{repo.name}</h3>
+              <h3 className="font-medium text-[var(--fg-primary)] truncate">{repo.name}</h3>
               {matchScore !== undefined && (
                 <Badge variant={matchScore >= 0.7 ? "success" : matchScore >= 0.4 ? "warning" : "default"}>
                   {Math.round(matchScore * 100)}% match
                 </Badge>
               )}
             </div>
-            <p className="text-sm text-gray-500 truncate">{repo.fullName}</p>
+            <p className="text-sm text-[var(--fg-muted)] truncate">{repo.fullName}</p>
           </div>
           <a
             href={repo.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-gray-400 hover:text-gray-600 ml-2"
+            className="text-[var(--fg-muted)] hover:text-[var(--fg-primary)] ml-2 transition-colors"
             onClick={(e) => e.stopPropagation()}
           >
             <ExternalLink className="w-4 h-4" />
@@ -55,16 +55,16 @@ export function RepoCard({ repo, matchScore, onClick, selected }: RepoCardProps)
         </div>
 
         {repo.description && (
-          <p className="mt-2 text-sm text-gray-600 line-clamp-2">
+          <p className="mt-2 text-sm text-[var(--fg-tertiary)] line-clamp-2">
             {truncate(repo.description, 120)}
           </p>
         )}
 
-        <div className="mt-3 flex items-center gap-4 text-sm text-gray-500">
+        <div className="mt-3 flex items-center gap-4 text-sm text-[var(--fg-muted)]">
           {repo.language && (
             <div className="flex items-center gap-1.5">
               <div
-                className="w-3 h-3 rounded-full"
+                className="w-3 h-3 rounded-full shrink-0"
                 style={{ backgroundColor: getLanguageColor(repo.language) }}
               />
               <span>{repo.language}</span>
