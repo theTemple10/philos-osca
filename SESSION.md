@@ -342,12 +342,61 @@ No PrismaAdapter involved. JWT handles sessions. signIn callback handles user pe
 #### Cleanup
 - Removed unused `@next-auth/prisma-adapter` from package.json
 
+### Session 4 Work (2026-09-11) — Recommendations Implementation
+
+Comprehensive fix/optimization/feature pass based on code review recommendations.
+
+#### Bug Fixes
+- **Fixed broken `node_modules`**: Ran `npm install`; `tsc` and `vitest` now available
+- **Fixed test assertions** (`utils.test.ts`): Tests now match implementation output (CSS variable strings like `text-[var(--color-success)]`)
+- **Fixed contribution card status flow**: State machine now transitions `discovered → selected → analyzing → reviewing` properly. Added `updateStatus` action to `/api/contribute`. Cards show correct buttons per status. Previously `selected` status was never set, so "Generate Code" button never appeared.
+- **Fixed `window.location.href` lint error** in settings: Now uses `router.push()`
+
+#### API Optimizations
+- **Consolidated dashboard API**: New `POST /api/dashboard/stats` endpoint replaces 3 sequential calls (repos, analyze, settings). No more re-syncing repos on every dashboard load.
+- **Separated repo sync from fetch**: `GET /api/repos` now reads from DB only (fast). New `POST /api/repos/sync` does GitHub re-sync with rate limiting (5 req/5min per user). Manual "Sync Repos" button added to repos page header.
+- **Auth env var validation** (`config.ts`): `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `NEXTAUTH_SECRET` now throw clear startup errors if missing instead of cryptic runtime failures.
+- **Middleware updated**: Added `/dashboard/stats`, `/repos/sync`, `/user/data` to matcher.
+
+#### Features
+- **API key format validation** (client-side settings): Checks provider-specific key prefixes (sk- for OpenAI, sk-ant- for Anthropic, gsk_ for Groq, sk-or- for OpenRouter) before saving.
+- **Confirmation dialogs**: PR submit warns before forking/creating PR. AI code generation warns about API credit usage. Uses inline confirmations (lightweight, no dialog library needed).
+- **Error toasts everywhere**: Repos sync, issue loading, contribution creation, skill profile fetch, settings save all show user-facing toasts via Sonner.
+- **Zustand store** (`src/lib/stores/dashboard-store.ts`): Shared dashboard state (skill profile, user settings, stats) across pages. Dashboard page now reads from store instead of refetching on every render.
+- **Data export/delete** (GDPR): New `GET/DELETE /api/user/data` endpoint. Export returns JSON with user info, repos, contributions, pull requests, settings. Delete removes all user data with confirmation.
+- **GitHub connection status** in Settings: Shows connected (with username) or not connected state, fetched from `/api/settings`.
+- **Watch Demo button fixed**: Now smooth-scrolls to "How It Works" section instead of broken link.
+
+#### Environment / Tooling
+- **Vitest downgraded** from 4.x to 3.x: 4.x requires Node 20+, environment has Node 18.19.1. Compatible version installed.
+
+#### Verification
+- **TypeScript**: 0 errors (`npx tsc --noEmit`)
+- **Tests**: 25/25 passing (`npm test`)
+- **Lint**: 0 errors (`npm run lint`) — 6 pre-existing warnings (all useEffect dependency arrays, unchanged)
+
+#### Files Changed
+- `src/lib/utils.test.ts` — test assertions fixed
+- `src/app/api/contribute/route.ts` — added `updateStatus` action
+- `src/components/contribution/contribution-card.tsx` — status flow buttons fixed
+- `src/app/(dashboard)/contribute/page.tsx` — flow fix, confirmation dialogs, error toasts
+- `src/app/api/dashboard/stats/route.ts` — **new** consolidated stats endpoint
+- `src/app/api/repos/sync/route.ts` — **new** dedicated sync endpoint with rate limiting
+- `src/app/api/repos/route.ts` — GET now reads DB only (no re-sync)
+- `src/app/api/user/data/route.ts` — **new** export/delete endpoint
+- `src/app/api/settings/route.ts` — now returns GitHub connection status
+- `src/app/(dashboard)/dashboard/page.tsx` — uses Zustand store + consolidated stats API
+- `src/app/(dashboard)/repos/page.tsx` — uses sync endpoint, error toasts, sync button
+- `src/app/(dashboard)/settings/page.tsx` — API key validation, data export/delete, GitHub status
+- `src/app/page.tsx` — Watch Demo smooth-scroll fix
+- `src/lib/auth/config.ts` — env var validation
+- `src/middleware.ts` — new route matchers
+- `src/lib/stores/dashboard-store.ts` — **new** Zustand store
+
 ### Remaining Work (Prioritized)
 
 #### HIGH Priority
-- [ ] Add API key format validation (client-side, e.g. sk- prefix for OpenAI)
 - [ ] Wire `findMatchingRepositories()` from analyze.ts into discover endpoint
-- [ ] Add confirmation dialogs before PR submit and contribution creation
 - [ ] Implement profile page with full skill breakdown (section 4.11)
 
 #### MEDIUM Priority
@@ -355,8 +404,6 @@ No PrismaAdapter involved. JWT handles sessions. signIn callback handles user pe
 - [ ] Add match score filtering (show only 70%+ matches)
 - [ ] Add "suggest desktop" banner for complex operations on mobile
 - [ ] Notification preferences in settings (section 4.2)
-- [ ] Data export/delete in settings (section 4.2)
-- [ ] GitHub account connection status in settings (section 4.2)
 - [ ] Contribution streak/stats visualization (section 4.11)
 
 #### LOW Priority (Nice-to-Have)
@@ -364,7 +411,6 @@ No PrismaAdapter involved. JWT handles sessions. signIn callback handles user pe
 - [ ] Dedicated `repos/[owner]/[repo]/page.tsx` for issue browsing (vs. current inline modal)
 - [ ] Contribution guide fallback when code generation fails
 - [ ] Encrypt API keys in database (currently plaintext)
-- [ ] Rate limiting for repos sync endpoint
 
 ---
 
