@@ -167,6 +167,10 @@ export default function Home() {
                 size="lg"
                 variant="outline"
                 className="min-w-[220px] text-base"
+                onClick={() => {
+                  const demoSection = document.getElementById("how-it-works");
+                  demoSection?.scrollIntoView({ behavior: "smooth" });
+                }}
               >
                 <Play className="w-4 h-4 mr-2" />
                 Watch Demo
@@ -263,7 +267,7 @@ export default function Home() {
         </div>
 
         {/* How It Works */}
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <div id="how-it-works" className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-[var(--fg-primary)] mb-4">
               How It Works

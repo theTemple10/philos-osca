@@ -7,7 +7,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AVAILABLE_MODELS, AIProvider } from "@/lib/ai/providers";
-import { Settings, Save, Brain, Shield, Eye, EyeOff, CheckCircle, Sun, Moon, Monitor } from "lucide-react";
+import { Settings, Save, Brain, Shield, Eye, EyeOff, CheckCircle, Sun, Moon, Monitor, GitBranch, Download, Trash2, ExternalLink } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { useTheme } from "@/components/providers/theme-provider";
 
@@ -24,6 +24,11 @@ export default function SettingsPage() {
   const [difficulty, setDifficulty] = useState("adaptive");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [githubConnected, setGithubConnected] = useState(false);
+  const [githubLogin, setGithubLogin] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deleting, setDeleting] = useState(false);
   const [, startTransition] = useTransition();
 
   async function fetchSettings() {
@@ -34,8 +39,57 @@ export default function SettingsPage() {
       if (data.aiModel) setAiModel(data.aiModel);
       if (data.difficulty) setDifficulty(data.difficulty);
       if (data.hasApiKey) setHasApiKey(true);
+      if (data.githubConnected !== undefined) setGithubConnected(data.githubConnected);
+      if (data.githubLogin) setGithubLogin(data.githubLogin);
     } catch {
       // use defaults
+    }
+  }
+
+  async function handleExportData() {
+    setExporting(true);
+    try {
+      const res = await fetch("/api/user/data");
+      if (!res.ok) throw new Error("Export failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `oss-contributor-data.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      addToast("success", "Data exported successfully!");
+    } catch {
+      addToast("error", "Failed to export data. Please try again.");
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  async function handleDeleteAccount() {
+    if (deleteConfirm !== "DELETE_MY_DATA") {
+      addToast("warning", 'Please type DELETE_MY_DATA to confirm deletion.');
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/user/data", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirm: "DELETE_MY_DATA" }),
+      });
+      if (!res.ok) throw new Error("Delete failed");
+      addToast("success", "Account deleted. Redirecting...");
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
+    } catch {
+      addToast("error", "Failed to delete account. Please try again.");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -50,7 +104,31 @@ export default function SettingsPage() {
     }
   }, [status]);
 
+  function validateApiKey(key: string, provider: string): string | null {
+    if (!key) return null; // empty is fine (means use env var)
+    const prefixes: Record<string, string[]> = {
+      openai: ["sk-"],
+      anthropic: ["sk-ant-"],
+      groq: ["gsk_"],
+      openrouter: ["sk-or-"],
+    };
+    const expected = prefixes[provider];
+    if (expected && !expected.some((p) => key.startsWith(p))) {
+      return `API key should start with "${expected[0]}" for ${provider}. You entered a key that looks like it might be for a different provider.`;
+    }
+    return null;
+  }
+
   async function handleSave() {
+    // Validate API key format
+    if (aiApiKey) {
+      const validationError = validateApiKey(aiApiKey, aiProvider);
+      if (validationError) {
+        addToast("warning", validationError);
+        return;
+      }
+    }
+
     setSaving(true);
     try {
       const res = await fetch("/api/settings", {
@@ -309,6 +387,45 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
+      {/* GitHub Connection */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <GitBranch className="w-5 h-5 text-[var(--fg-tertiary)]" />
+            <h2 className="text-lg font-semibold text-[var(--fg-primary)]">GitHub Connection</h2>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`w-3 h-3 rounded-full ${githubConnected ? "bg-[var(--color-success)]" : "bg-[var(--fg-muted)]"}`} />
+              <div>
+                <p className="font-medium text-[var(--fg-primary)]">
+                  {githubConnected ? `Connected as @${githubLogin}` : "Not connected"}
+                </p>
+                <p className="text-sm text-[var(--fg-muted)]">
+                  {githubConnected
+                    ? "Your GitHub account is linked for repository access and PR submission."
+                    : "Sign in with GitHub to connect your account."}
+                </p>
+              </div>
+            </div>
+            {githubConnected ? (
+              <a href="https://github.com/settings/connections" target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" size="sm">
+                  <ExternalLink className="w-4 h-4 mr-1" />
+                  Manage
+                </Button>
+              </a>
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => router.push("/login")}>
+                Connect
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Privacy Settings */}
       <Card>
         <CardHeader>
@@ -361,6 +478,54 @@ export default function SettingsPage() {
               aria-label="Auto-submit pull requests"
               className="w-5 h-5 rounded border-[var(--border-strong)] text-[var(--accent)] focus:ring-[var(--accent)] bg-[var(--bg-input)]"
             />
+          </div>
+
+          <div className="pt-4 border-t border-[var(--border-soft)] space-y-4">
+            {/* Export Data */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-[var(--fg-primary)]">Export Your Data</p>
+                <p className="text-sm text-[var(--fg-muted)]">
+                  Download all your data as a JSON file
+                </p>
+              </div>
+              <Button variant="outline" size="sm" onClick={handleExportData} disabled={exporting}>
+                <Download className="w-4 h-4 mr-1" />
+                {exporting ? "Exporting..." : "Export"}
+              </Button>
+            </div>
+
+            {/* Delete Account */}
+            <div className="p-4 bg-[var(--color-danger-bg)] rounded-lg border border-[var(--color-danger-border)]">
+              <div className="flex items-start gap-3">
+                <Trash2 className="w-5 h-5 text-[var(--color-danger)] mt-0.5 shrink-0" />
+                <div className="flex-1">
+                  <p className="font-medium text-[var(--color-danger)]">Delete Account</p>
+                  <p className="text-sm text-[var(--fg-muted)] mt-1">
+                    Permanently delete your account and all associated data. This action cannot be undone.
+                  </p>
+                  <div className="mt-3 flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={deleteConfirm}
+                      onChange={(e) => setDeleteConfirm(e.target.value)}
+                      placeholder="Type DELETE_MY_DATA"
+                      aria-label="Type DELETE_MY_DATA to confirm deletion"
+                      className="flex-1 max-w-xs px-3 py-1.5 text-sm border border-[var(--color-danger-border)] rounded bg-[var(--bg-input)] text-[var(--fg-primary)] placeholder:text-[var(--fg-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-danger)]"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDeleteAccount}
+                      disabled={deleting || deleteConfirm !== "DELETE_MY_DATA"}
+                      className="border-[var(--color-danger-border)] text-[var(--color-danger)] hover:bg-[var(--color-danger-bg)]"
+                    >
+                      {deleting ? "Deleting..." : "Delete Account"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -86,9 +86,54 @@ export default function ContributePage() {
   async function handleSelect(contributionId: string) {
     const contribution = contributions.find((c) => c.id === contributionId);
     setSelectedContribution(contribution || null);
+
+    // Update status to selected in the database
+    try {
+      await fetch("/api/contribute", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contributionId,
+          action: "updateStatus",
+          status: "selected",
+        }),
+      });
+      setContributions((prev) =>
+        prev.map((c) =>
+          c.id === contributionId ? { ...c, status: "selected" } : c
+        )
+      );
+    } catch {
+      // Status update is best-effort; local state is sufficient
+    }
   }
 
   async function handleGenerate(contributionId: string) {
+    const confirmed = window.confirm(
+      "This will use your AI API credits to generate code for this issue. Continue?"
+    );
+    if (!confirmed) return;
+
+    // Transition to analyzing
+    try {
+      await fetch("/api/contribute", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contributionId,
+          action: "updateStatus",
+          status: "analyzing",
+        }),
+      });
+      setContributions((prev) =>
+        prev.map((c) =>
+          c.id === contributionId ? { ...c, status: "analyzing" } : c
+        )
+      );
+    } catch {
+      // Continue even if status update fails
+    }
+
     setGenerating(true);
     try {
       const res = await fetch("/api/contribute", {
@@ -103,6 +148,25 @@ export default function ContributePage() {
       const data = await res.json();
       if (data.codeResult) {
         setGeneratedCode(data.codeResult);
+        // Transition to reviewing after successful generation
+        try {
+          await fetch("/api/contribute", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contributionId,
+              action: "updateStatus",
+              status: "reviewing",
+            }),
+          });
+          setContributions((prev) =>
+            prev.map((c) =>
+              c.id === contributionId ? { ...c, status: "reviewing" } : c
+            )
+          );
+        } catch {
+          // Best-effort
+        }
         addToast("success", "Code generated successfully! Review and submit.");
       } else {
         addToast("error", data.error || "Failed to generate code. Please try again.");
@@ -116,6 +180,16 @@ export default function ContributePage() {
   }
 
   async function handleSubmit(contributionId: string) {
+    const contribution = contributions.find((c) => c.id === contributionId);
+    const repoName = contribution
+      ? `${contribution.targetRepoOwner}/${contribution.targetRepoName}`
+      : "the target repository";
+
+    const confirmed = window.confirm(
+      `This will fork ${repoName} and create a pull request. The generated code will be committed to a new branch. Continue?`
+    );
+    if (!confirmed) return;
+
     setSubmitting(true);
     try {
       const branchName = `oss-contributor/${Date.now()}`;

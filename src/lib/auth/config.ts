@@ -2,11 +2,22 @@ import { NextAuthOptions } from "next-auth";
 import GitHubProvider from "next-auth/providers/github";
 import { prisma } from "@/lib/db";
 
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(
+      `Missing required environment variable: ${name}. ` +
+      `Copy .env.example to .env and fill in the values. See README.md for setup instructions.`
+    );
+  }
+  return value;
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     GitHubProvider({
-      clientId: process.env.GITHUB_CLIENT_ID!,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+      clientId: requireEnv("GITHUB_CLIENT_ID"),
+      clientSecret: requireEnv("GITHUB_CLIENT_SECRET"),
       authorization: {
         params: {
           scope: "read:user user:email repo read:org",

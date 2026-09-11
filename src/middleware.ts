@@ -17,6 +17,9 @@ export const config = {
     "/api/contribute/:path*",
     "/api/contributions/:path*",
     "/api/repos/:path*",
+    "/api/repos/sync",
     "/api/settings/:path*",
+    "/api/dashboard/:path*",
+    "/api/user/:path*",
   ],
 };

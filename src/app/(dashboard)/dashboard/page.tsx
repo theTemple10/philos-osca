@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SkillMap, type SkillMapProps } from "@/components/dashboard/skill-map";
+import { useDashboardStore } from "@/lib/stores/dashboard-store";
 import {
   GitPullRequest,
   Brain,
@@ -17,44 +18,26 @@ import {
   Settings,
 } from "lucide-react";
 
-interface UserStats {
-  totalRepos: number;
-  totalContributions: number;
-  totalPRs: number;
-  skillProfile: {
-    languages?: { name: string; proficiency: number }[];
-    frameworks?: string[];
-  } | null;
-  hasApiKey: boolean;
-}
-
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [stats, setStats] = useState<UserStats | null>(null);
+  const store = useDashboardStore();
   const [loading, setLoading] = useState(true);
-  const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   async function fetchStats() {
     try {
-      const reposRes = await fetch("/api/repos");
-      const reposData = await reposRes.json();
+      const res = await fetch("/api/dashboard/stats");
+      const data = await res.json();
 
-      const skillRes = await fetch("/api/analyze");
-      const skillData = await skillRes.json();
-
-      const settingsRes = await fetch("/api/settings");
-      const settingsData = await settingsRes.json();
-
-      setStats({
-        totalRepos: reposData.total || 0,
-        totalContributions: 0,
-        totalPRs: 0,
-        skillProfile: skillData.skillProfile,
-        hasApiKey: settingsData.hasApiKey || false,
+      store.setReposCount(data.totalRepos || 0);
+      store.setStats({
+        totalContributions: data.totalContributions || 0,
+        totalPRs: data.totalPRs || 0,
       });
+      store.setSkillProfile(data.skillProfile);
+      store.setSettings({ hasApiKey: data.hasApiKey || false });
     } catch (error) {
       console.error("Error fetching stats:", error);
     } finally {
@@ -76,17 +59,17 @@ export default function DashboardPage() {
   }, [status]);
 
   async function analyzeSkills() {
-    if (!stats?.hasApiKey) {
+    if (!store.hasApiKey) {
       setError("Please set your API key in Settings to analyze skills.");
       return;
     }
 
-    if (!stats?.totalRepos || stats.totalRepos === 0) {
+    if (!store.reposCount || store.reposCount === 0) {
       setError("Please sync your repositories first in the Discover page.");
       return;
     }
 
-    setAnalyzing(true);
+    store.setIsAnalyzing(true);
     setError(null);
     try {
       const res = await fetch("/api/analyze", {
@@ -105,7 +88,7 @@ export default function DashboardPage() {
       console.error("Error analyzing skills:", error);
       setError(error instanceof Error ? error.message : "Failed to analyze skills");
     } finally {
-      setAnalyzing(false);
+      store.setIsAnalyzing(false);
     }
   }
 
@@ -160,7 +143,7 @@ export default function DashboardPage() {
                   <TrendingUp className="w-5 h-5 text-[var(--color-info)]" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-2xl font-bold text-[var(--fg-primary)]">{stats?.totalRepos || 0}</p>
+                  <p className="text-2xl font-bold text-[var(--fg-primary)]">{store.reposCount}</p>
                   <p className="text-sm text-[var(--fg-muted)]">Repositories</p>
                 </div>
                 <ArrowRight className="w-5 h-5 text-[var(--fg-muted)]" />
@@ -180,7 +163,7 @@ export default function DashboardPage() {
                   <GitPullRequest className="w-5 h-5 text-[var(--color-success)]" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-2xl font-bold text-[var(--fg-primary)]">{stats?.totalContributions || 0}</p>
+                  <p className="text-2xl font-bold text-[var(--fg-primary)]">{store.totalContributions}</p>
                   <p className="text-sm text-[var(--fg-muted)]">Contributions</p>
                 </div>
                 <ArrowRight className="w-5 h-5 text-[var(--fg-muted)]" />
@@ -200,7 +183,7 @@ export default function DashboardPage() {
                   <GitPullRequest className="w-5 h-5 text-[var(--accent)]" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-2xl font-bold text-[var(--fg-primary)]">{stats?.totalPRs || 0}</p>
+                  <p className="text-2xl font-bold text-[var(--fg-primary)]">{store.totalPRs}</p>
                   <p className="text-sm text-[var(--fg-muted)]">Pull Requests</p>
                 </div>
                 <ArrowRight className="w-5 h-5 text-[var(--fg-muted)]" />
@@ -221,12 +204,12 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex-1">
                   <p className="text-2xl font-bold text-[var(--fg-primary)]">
-                    {stats?.skillProfile?.languages && stats.skillProfile.languages.length > 0
+                    {store.skillProfile?.languages && store.skillProfile.languages.length > 0
                       ? Math.round(
-                          (stats.skillProfile.languages.reduce(
+                          (store.skillProfile.languages.reduce(
                             (acc: number, l: { proficiency: number }) => acc + l.proficiency,
                             0
-                          ) / stats.skillProfile.languages.length) * 100
+                          ) / store.skillProfile.languages.length) * 100
                         ) + "%"
                       : "—"}
                   </p>
@@ -243,10 +226,10 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Skill Map */}
         <div>
-          <SkillMap skillProfile={stats?.skillProfile as SkillMapProps['skillProfile'] || null} />
-          {!stats?.skillProfile && (
+          <SkillMap skillProfile={store.skillProfile as SkillMapProps['skillProfile'] || null} />
+          {!store.skillProfile && (
             <div className="mt-4 space-y-3">
-              {!stats?.hasApiKey && (
+              {!store.hasApiKey && (
                 <div className="p-3 bg-[var(--color-warning-bg)] border border-[var(--color-warning-border)] rounded-lg">
                   <p className="text-sm text-[var(--color-warning)]">
                     <Settings className="w-4 h-4 inline mr-1" />
@@ -256,14 +239,14 @@ export default function DashboardPage() {
               )}
               <Button
                 onClick={analyzeSkills}
-                disabled={analyzing || !stats?.hasApiKey}
+                disabled={store.isAnalyzing || !store.hasApiKey}
               >
-                {analyzing ? (
+                {store.isAnalyzing ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 ) : (
                   <Brain className="w-4 h-4 mr-2" />
                 )}
-                {analyzing ? "Analyzing..." : "Analyze My Skills"}
+                {store.isAnalyzing ? "Analyzing..." : "Analyze My Skills"}
               </Button>
             </div>
           )}

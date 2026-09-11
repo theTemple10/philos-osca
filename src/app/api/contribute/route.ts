@@ -17,6 +17,12 @@ const submitSchema = z.object({
   branchName: z.string().min(1),
 });
 
+const updateStatusSchema = z.object({
+  contributionId: z.string().min(1),
+  action: z.literal("updateStatus"),
+  status: z.enum(["selected", "analyzing", "coding", "reviewing"]),
+});
+
 const createContributionSchema = z.object({
   action: z.literal("create"),
   targetRepoOwner: z.string().min(1),
@@ -54,6 +60,29 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+
+    if (body.action === "updateStatus") {
+      const parsed = updateStatusSchema.parse(body);
+
+      const contribution = await prisma.contribution.findUnique({
+        where: { id: parsed.contributionId },
+      });
+
+      if (!contribution) {
+        return NextResponse.json({ error: "Contribution not found" }, { status: 404 });
+      }
+
+      if (contribution.userId !== userId) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+
+      await prisma.contribution.update({
+        where: { id: parsed.contributionId },
+        data: { status: parsed.status },
+      });
+
+      return NextResponse.json({ success: true });
+    }
 
     if (body.action === "create") {
       const parsed = createContributionSchema.parse(body);

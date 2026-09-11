@@ -104,12 +104,21 @@ export function ContributionCard({
         {contribution.status === "selected" && (
           <Button size="sm" onClick={() => onGenerate?.(contribution.id)}>
             Generate Code
+            <ArrowRight className="w-4 h-4 ml-1" />
+          </Button>
+        )}
+        {(contribution.status === "analyzing" || contribution.status === "coding") && (
+          <Button size="sm" disabled>
+            Processing...
           </Button>
         )}
         {contribution.status === "reviewing" && (
           <Button size="sm" onClick={() => onSubmit?.(contribution.id)}>
             Submit PR
           </Button>
+        )}
+        {(contribution.status === "pr_created" || contribution.status === "merged") && (
+          <span className="text-sm text-[var(--color-success)] font-medium">Completed</span>
         )}
       </CardFooter>
     </Card>

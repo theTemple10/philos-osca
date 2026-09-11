@@ -26,6 +26,8 @@ export async function GET() {
         aiApiKey: true,
         aiProvider: true,
         aiModel: true,
+        githubLogin: true,
+        accessToken: true,
       },
     });
 
@@ -34,6 +36,8 @@ export async function GET() {
       aiModel: user?.aiModel || user?.preferredAiModel || "gpt-4o",
       difficulty: user?.difficultyLevel || "adaptive",
       hasApiKey: !!user?.aiApiKey,
+      githubConnected: !!user?.accessToken,
+      githubLogin: user?.githubLogin || null,
     });
   } catch (error) {
     console.error("Error fetching settings:", error);

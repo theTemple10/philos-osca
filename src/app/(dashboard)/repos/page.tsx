@@ -68,16 +68,33 @@ export default function ReposPage() {
       setMyRepos(data.repos || []);
     } catch (error) {
       console.error("Error fetching repos:", error);
+      addToast("error", "Failed to load your repositories.");
+    }
+  }
+
+  async function syncRepos() {
+    try {
+      const res = await fetch("/api/repos/sync", { method: "POST" });
+      const data = await res.json();
+      if (data.repos) {
+        setMyRepos(data.repos);
+        addToast("success", `Synced ${data.total} repositories from GitHub.`);
+      }
+    } catch (error) {
+      console.error("Error syncing repos:", error);
+      addToast("error", "Failed to sync repositories. Please try again.");
     }
   }
 
   async function fetchSkillProfile() {
     try {
       const res = await fetch("/api/analyze");
-      const data = await res.json();
-      setSkillProfile(data.skillProfile);
-    } catch (error) {
-      console.error("Error fetching skill profile:", error);
+      if (res.ok) {
+        const data = await res.json();
+        setSkillProfile(data.skillProfile);
+      }
+    } catch {
+      // Skill profile is optional; don't block the page
     }
   }
 
@@ -175,10 +192,11 @@ export default function ReposPage() {
     try {
       const [owner, name] = repo.full_name.split("/");
       const res = await fetch(`/api/repos/${owner}/${name}/issues`);
+      if (!res.ok) throw new Error("Failed to fetch issues");
       const data = await res.json();
       setIssues(data.issues || []);
-    } catch (error) {
-      console.error("Error fetching issues:", error);
+    } catch {
+      addToast("error", "Failed to load issues. Please try again.");
     } finally {
       setLoadingIssues(false);
     }
@@ -209,10 +227,11 @@ export default function ReposPage() {
         addToast("success", "Contribution created! Redirecting to contribute page...");
         router.push("/contribute");
       } else {
-        addToast("error", "Failed to create contribution. Please try again.");
+        const data = await res.json().catch(() => ({}));
+        addToast("error", data.error || "Failed to create contribution. Please try again.");
       }
-    } catch (error) {
-      console.error("Error creating contribution:", error);
+    } catch {
+      addToast("error", "Failed to create contribution. Please try again.");
     }
   }
 
@@ -226,10 +245,16 @@ export default function ReposPage() {
             Find open source repositories that match your skills
           </p>
         </div>
-        <Button onClick={discoverRepos} disabled={loading}>
-          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={syncRepos}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Sync GitHub
+          </Button>
+          <Button onClick={discoverRepos} disabled={loading}>
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}

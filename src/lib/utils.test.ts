@@ -58,17 +58,17 @@ describe("getLanguageColor", () => {
 });
 
 describe("getDifficultyColor", () => {
-  it("returns correct colors", () => {
-    expect(getDifficultyColor("easy")).toBe("text-green-500");
-    expect(getDifficultyColor("medium")).toBe("text-yellow-500");
-    expect(getDifficultyColor("hard")).toBe("text-red-500");
+  it("returns correct semantic token colors", () => {
+    expect(getDifficultyColor("easy")).toContain("var(--color-success)");
+    expect(getDifficultyColor("medium")).toContain("var(--color-warning)");
+    expect(getDifficultyColor("hard")).toContain("var(--color-danger)");
   });
 
   it("is case insensitive", () => {
-    expect(getDifficultyColor("Easy")).toBe("text-green-500");
+    expect(getDifficultyColor("Easy")).toContain("var(--color-success)");
   });
 
   it("returns default for unknown", () => {
-    expect(getDifficultyColor("unknown")).toBe("text-gray-500");
+    expect(getDifficultyColor("unknown")).toContain("var(--fg-muted)");
   });
 });
