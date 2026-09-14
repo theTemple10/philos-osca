@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
+import { encrypt } from "@/lib/crypto";
 import { z } from "zod";
 
 const updateSettingsSchema = z.object({
@@ -58,14 +59,26 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const parsed = updateSettingsSchema.parse(body);
 
+    const updateData: Record<string, unknown> = {};
+
+    if (parsed.aiProvider) {
+      updateData.aiProvider = parsed.aiProvider;
+      updateData.preferredAiProvider = parsed.aiProvider;
+    }
+    if (parsed.aiModel) {
+      updateData.aiModel = parsed.aiModel;
+      updateData.preferredAiModel = parsed.aiModel;
+    }
+    if (parsed.aiApiKey !== undefined) {
+      updateData.aiApiKey = parsed.aiApiKey ? encrypt(parsed.aiApiKey) : null;
+    }
+    if (parsed.difficulty) {
+      updateData.difficultyLevel = parsed.difficulty;
+    }
+
     await prisma.user.update({
       where: { id: (session.user as { id: string }).id },
-      data: {
-        ...(parsed.aiProvider && { aiProvider: parsed.aiProvider, preferredAiProvider: parsed.aiProvider }),
-        ...(parsed.aiModel && { aiModel: parsed.aiModel, preferredAiModel: parsed.aiModel }),
-        ...(parsed.aiApiKey !== undefined && { aiApiKey: parsed.aiApiKey || null }),
-        ...(parsed.difficulty && { difficultyLevel: parsed.difficulty }),
-      },
+      data: updateData,
     });
 
     return NextResponse.json({ success: true });

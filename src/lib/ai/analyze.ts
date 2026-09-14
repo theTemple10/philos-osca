@@ -8,6 +8,7 @@ import {
 } from "./prompts";
 import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
+import { decrypt } from "@/lib/crypto";
 
 interface SkillProfile {
   languages: Array<{ name: string; proficiency: number }>;
@@ -60,7 +61,7 @@ export async function analyzeUserSkills(userId: string) {
   const providerConfig = {
     provider: (user.aiProvider || user.preferredAiProvider || "openai") as AIProvider,
     model: user.aiModel || user.preferredAiModel || undefined,
-    apiKey: user.aiApiKey,
+    apiKey: decrypt(user.aiApiKey),
   };
 
   const prompt = analyzeUserSkillsPrompt(
@@ -115,7 +116,7 @@ export async function analyzeContribution(
   const providerConfig = {
     provider: (user.aiProvider || user.preferredAiProvider || "openai") as AIProvider,
     model: user.aiModel || user.preferredAiModel || undefined,
-    apiKey: user.aiApiKey,
+    apiKey: decrypt(user.aiApiKey),
   };
 
   const prompt = analyzeContributionPrompt(issue, user.skillProfile as Record<string, unknown> | null, repoContext);
@@ -155,7 +156,7 @@ export async function generateContributionCode(
   const providerConfig = {
     provider: (user.aiProvider || user.preferredAiProvider || "openai") as AIProvider,
     model: user.aiModel || user.preferredAiModel || undefined,
-    apiKey: user.aiApiKey,
+    apiKey: decrypt(user.aiApiKey),
   };
 
   const prompt = generateCodePrompt(issue, relevantFiles, repoContext);
@@ -186,7 +187,7 @@ export async function findMatchingRepositories(userId: string) {
   const providerConfig = {
     provider: (user.aiProvider || user.preferredAiProvider || "openai") as AIProvider,
     model: user.aiModel || user.preferredAiModel || undefined,
-    apiKey: user.aiApiKey,
+    apiKey: decrypt(user.aiApiKey),
   };
 
   const prompt = findMatchingReposPrompt(user.skillProfile as Record<string, unknown> | null, {

@@ -62,6 +62,13 @@ Return a JSON object:
 Respond ONLY with valid JSON.`;
 }
 
+function addLineNumbers(content: string): string {
+  return content
+    .split("\n")
+    .map((line, i) => `${i + 1}: ${line}`)
+    .join("\n");
+}
+
 /**
  * Prompt for generating code for a contribution
  */
@@ -70,7 +77,7 @@ export function generateCodePrompt(
   relevantFiles: Array<{ path: string; content: string }>,
   repoContext: { languages: Record<string, number>; topics: string[]; conventions?: string }
 ) {
-  return `You are an expert open source contributor. Generate code to solve this issue.
+  return `You are an expert open source contributor. Propose a minimal, working fix for this issue.
 
 Issue Title: ${issue.title}
 Issue Description: ${issue.body?.substring(0, 3000) || "No description"}
@@ -80,29 +87,22 @@ Repository Context:
 - Topics: ${repoContext.topics.join(", ")}
 ${repoContext.conventions ? `- Code Conventions: ${repoContext.conventions}` : ""}
 
-Existing Code (relevant files):
-${relevantFiles.map((f) => `\n--- ${f.path} ---\n${f.content.substring(0, 3000)}`).join("\n")}
+Existing files (use EXACT content shown, line numbers added for reference only, do not include them in output):
+${relevantFiles.map((f) => `\n--- ${f.path} ---\n${addLineNumbers(f.content.substring(0, 4000))}`).join("\n")}
 
-Generate the solution following these rules:
-1. Follow the existing code style and conventions
-2. Add appropriate comments for complex logic
-3. Handle edge cases
-4. Include error handling where appropriate
-5. Keep changes minimal and focused on the issue
+Rules:
+1. Only modify files shown above, or create clearly-named new files if the issue requires one.
+2. For existing files, return the COMPLETE new file content (not a diff) — but change as little as possible from the original.
+3. If you cannot confidently solve this without seeing a file that wasn't provided, say so in "blockers" instead of guessing.
+4. Keep changes minimal and focused; do not refactor unrelated code.
 
-Return a JSON object:
+Return JSON:
 {
-  "files": [
-    {
-      "path": "path/to/file.ts",
-      "content": "full file content",
-      "action": "create" | "update" | "delete",
-      "explanation": "Why this change is needed"
-    }
-  ],
+  "files": [{ "path": "...", "content": "full new file content", "action": "create"|"update"|"delete", "explanation": "..." }],
   "commitMessage": "conventional commit message",
-  "prTitle": "PR title",
-  "prBody": "PR description with context"
+  "prTitle": "...",
+  "prBody": "...",
+  "blockers": ["optional: reasons this can't be safely completed"]
 }
 
 Respond ONLY with valid JSON.`;

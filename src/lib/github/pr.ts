@@ -33,6 +33,56 @@ export async function forkRepository(
 }
 
 /**
+ * Create a new branch from an existing branch
+ */
+export async function createBranch(
+  accessToken: string,
+  owner: string,
+  repo: string,
+  branchName: string,
+  fromBranch: string
+) {
+  const octokit = createGitHubClient(accessToken);
+  const { data: baseRef } = await octokit.rest.git.getRef({
+    owner,
+    repo,
+    ref: `heads/${fromBranch}`,
+  });
+  await octokit.rest.git.createRef({
+    owner,
+    repo,
+    ref: `refs/heads/${branchName}`,
+    sha: baseRef.object.sha,
+  });
+}
+
+/**
+ * Poll until a fork's default branch ref exists (GitHub forks are async)
+ */
+export async function waitForForkReady(
+  accessToken: string,
+  owner: string,
+  repo: string,
+  branch: string,
+  { retries = 6, delayMs = 1500 } = {}
+) {
+  const octokit = createGitHubClient(accessToken);
+  for (let i = 0; i < retries; i++) {
+    try {
+      await octokit.rest.git.getRef({
+        owner,
+        repo,
+        ref: `heads/${branch}`,
+      });
+      return;
+    } catch {
+      await new Promise((r) => setTimeout(r, delayMs));
+    }
+  }
+  throw new Error("Fork was not ready in time — try submitting again in a moment.");
+}
+
+/**
  * Create or update files in a branch using GitHub's tree API
  */
 export async function createOrUpdateFiles(
@@ -116,7 +166,7 @@ export async function createOrUpdateFiles(
 }
 
 /**
- * Create a pull request
+ * Create a pull request (targets the fork for commits, upstream for the PR)
  */
 export async function createPullRequest(accessToken: string, params: CreatePRParams) {
   const octokit = createGitHubClient(accessToken);
@@ -124,10 +174,13 @@ export async function createPullRequest(accessToken: string, params: CreatePRPar
   const branchName = params.head.includes(":")
     ? params.head.split(":")[1]
     : params.head;
+  const forkOwner = params.head.includes(":")
+    ? params.head.split(":")[0]
+    : params.owner;
 
   await createOrUpdateFiles(
     accessToken,
-    params.owner,
+    forkOwner,
     params.repo,
     branchName,
     params.files

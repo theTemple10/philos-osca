@@ -22,8 +22,14 @@ export async function getCurrentUser() {
 
 export async function getGithubToken(): Promise<string | null> {
   const session = await getSession();
-  if (!(session as { accessToken?: string })?.accessToken) return null;
-  return (session as { accessToken?: string }).accessToken as string;
+  if (!session?.user) return null;
+
+  const user = await prisma.user.findUnique({
+    where: { id: (session.user as { id: string }).id },
+    select: { accessToken: true },
+  });
+
+  return user?.accessToken ?? null;
 }
 
 // Type augmentation for next-auth
@@ -35,7 +41,6 @@ declare module "next-auth" {
       email?: string | null;
       image?: string | null;
     };
-    accessToken?: string;
   }
 }
 
