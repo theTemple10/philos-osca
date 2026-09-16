@@ -23,6 +23,8 @@ export async function GET() {
             title: true,
             status: true,
             createdAt: true,
+            generatedCode: true,
+            branchName: true,
           },
         },
       },

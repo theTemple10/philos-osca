@@ -14,6 +14,7 @@ export interface CreatePRParams {
   head: string;
   base: string;
   files: FileChange[];
+  commitMessage?: string;
 }
 
 /**
@@ -64,7 +65,7 @@ export async function waitForForkReady(
   owner: string,
   repo: string,
   branch: string,
-  { retries = 6, delayMs = 1500 } = {}
+  { retries = 12, delayMs = 3000 } = {}
 ) {
   const octokit = createGitHubClient(accessToken);
   for (let i = 0; i < retries; i++) {
@@ -90,7 +91,8 @@ export async function createOrUpdateFiles(
   owner: string,
   repo: string,
   branch: string,
-  files: FileChange[]
+  files: FileChange[],
+  commitMessage?: string
 ) {
   const octokit = createGitHubClient(accessToken);
 
@@ -149,7 +151,7 @@ export async function createOrUpdateFiles(
   const { data: newCommit } = await octokit.rest.git.createCommit({
     owner,
     repo,
-    message: `feat: ${files.map((f) => f.path).join(", ")}`,
+    message: commitMessage || `feat: ${files.map((f) => f.path).join(", ")}`,
     tree: newTree.sha,
     parents: [latestCommitSha],
   });
@@ -183,7 +185,8 @@ export async function createPullRequest(accessToken: string, params: CreatePRPar
     forkOwner,
     params.repo,
     branchName,
-    params.files
+    params.files,
+    params.commitMessage
   );
 
   const { data: pr } = await octokit.rest.pulls.create({

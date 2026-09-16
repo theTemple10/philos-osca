@@ -148,25 +148,12 @@ export default function ContributePage() {
       const data = await res.json();
       if (data.codeResult) {
         setGeneratedCode(data.codeResult);
-        // Transition to reviewing after successful generation
-        try {
-          await fetch("/api/contribute", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contributionId,
-              action: "updateStatus",
-              status: "reviewing",
-            }),
-          });
-          setContributions((prev) =>
-            prev.map((c) =>
-              c.id === contributionId ? { ...c, status: "reviewing" } : c
-            )
-          );
-        } catch {
-          // Best-effort
-        }
+        // Status already updated to "reviewing" by the API
+        setContributions((prev) =>
+          prev.map((c) =>
+            c.id === contributionId ? { ...c, status: "reviewing" } : c
+          )
+        );
         addToast("success", "Code generated successfully! Review and submit.");
       } else {
         addToast("error", data.error || "Failed to generate code. Please try again.");

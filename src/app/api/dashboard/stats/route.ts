@@ -15,7 +15,6 @@ export async function GET() {
       where: { id: userId },
       select: {
         skillProfile: true,
-        hasApiKey: true,
         aiApiKey: true,
         _count: {
           select: {

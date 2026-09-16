@@ -100,16 +100,17 @@ export async function searchRepositories(
     language?: string;
     sort?: "stars" | "forks" | "updated";
     per_page?: number;
+    accessToken?: string;
   }
 ) {
-  // Use unauthenticated Octokit for public search
   const { Octokit } = await import("@octokit/rest");
-  const octokit = new Octokit();
+  const octokit = options?.accessToken
+    ? new Octokit({ auth: options.accessToken })
+    : new Octokit();
 
   const searchQuery = [
     query,
     options?.language ? `language:${options.language}` : "",
-    "good-first-issues:>0", // Prefer repos with beginner-friendly issues
   ]
     .filter(Boolean)
     .join(" ");

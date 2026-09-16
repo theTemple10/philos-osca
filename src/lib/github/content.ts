@@ -14,10 +14,14 @@ export async function getRepoTree(
   ref: string = "HEAD"
 ): Promise<{ path: string; type: "blob" | "tree"; sha: string }[]> {
   const octokit = createGitHubClient(accessToken);
-  const branchName =
-    ref === "HEAD"
-      ? (await octokit.rest.repos.get({ owner, repo })).data.default_branch
-      : ref;
+
+  // Get the default branch name if ref is HEAD
+  let branchName = ref;
+  if (ref === "HEAD") {
+    const { data: repoData } = await octokit.rest.repos.get({ owner, repo });
+    branchName = repoData.default_branch;
+  }
+
   const { data: refData } = await octokit.rest.repos.getBranch({
     owner,
     repo,

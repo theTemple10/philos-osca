@@ -1,3 +1,6 @@
+// NOTE: In-memory rate limiter. On Vercel serverless, each invocation gets a fresh
+// process so this only protects within a single function instance. For production
+// use, consider Redis-backed rate limiting (e.g. @upstash/ratelimit).
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 
 interface RateLimitOptions {
@@ -50,17 +53,4 @@ export function getRateLimitHeaders(
       ? "0"
       : String(Math.ceil((result.resetTime - Date.now()) / 1000)),
   };
-}
-
-const cleanupInterval = setInterval(() => {
-  const now = Date.now();
-  for (const [key, record] of rateLimitMap.entries()) {
-    if (now > record.resetTime) {
-      rateLimitMap.delete(key);
-    }
-  }
-}, 60000);
-
-if (typeof globalThis !== "undefined") {
-  (globalThis as Record<string, unknown>).__rateLimitCleanup = cleanupInterval;
 }

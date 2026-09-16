@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/auth/session";
+import { getSession, getGithubToken } from "@/lib/auth/session";
 import { fetchRepoIssues } from "@/lib/github/repos";
 
 export async function GET(
@@ -12,7 +12,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const token = (session as { accessToken?: string }).accessToken;
+    const token = await getGithubToken();
     if (!token) {
       return NextResponse.json({ error: "No GitHub token" }, { status: 401 });
     }

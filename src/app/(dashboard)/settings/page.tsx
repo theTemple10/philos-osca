@@ -138,7 +138,8 @@ export default function SettingsPage() {
       });
       if (!res.ok) throw new Error("Failed to save");
       setSaved(true);
-      if (aiApiKey) setHasApiKey(true);
+      // Re-fetch to confirm server accepted the save
+      await fetchSettings();
       addToast("success", "Settings saved successfully!");
       setTimeout(() => setSaved(false), 2000);
     } catch (error) {

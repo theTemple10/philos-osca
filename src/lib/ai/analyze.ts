@@ -33,7 +33,11 @@ function safeParseJSON<T>(text: string, context: string): T {
   const jsonMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
   const raw = jsonMatch ? jsonMatch[1].trim() : trimmed;
   try {
-    return JSON.parse(raw) as T;
+    const parsed = JSON.parse(raw);
+    if (parsed === null || typeof parsed !== "object") {
+      throw new Error(`AI returned non-object for ${context}`);
+    }
+    return parsed as T;
   } catch {
     throw new Error(
       `AI returned invalid JSON for ${context}. Response starts with: ${raw.substring(0, 200)}`
@@ -50,8 +54,8 @@ export async function analyzeUserSkills(userId: string) {
     include: { repositories: true },
   });
 
-  if (!user || !user.accessToken) {
-    throw new Error("User not found or no GitHub access token");
+  if (!user) {
+    throw new Error("User not found");
   }
 
   if (!user.aiApiKey) {
@@ -167,7 +171,19 @@ export async function generateContributionCode(
     temperature: 0.4,
   });
 
-  return safeParseJSON<CodeResult>(text, "code generation");
+  const result = safeParseJSON<CodeResult>(text, "code generation");
+
+  // Validate files array structure
+  if (!Array.isArray(result.files)) {
+    throw new Error("AI returned code generation result without a files array");
+  }
+  for (const file of result.files) {
+    if (!file.path || !file.content || !file.action) {
+      throw new Error(`AI returned malformed file entry: ${JSON.stringify(file).substring(0, 100)}`);
+    }
+  }
+
+  return result;
 }
 
 /**

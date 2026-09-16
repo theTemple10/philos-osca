@@ -83,7 +83,7 @@ export function ContributionCard({
           )}
 
           <Badge variant={getStatusVariant(contribution.status)}>
-            {contribution.status.replace("_", " ")}
+            {contribution.status.replaceAll("_", " ")}
           </Badge>
         </div>
 

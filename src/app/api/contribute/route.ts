@@ -171,7 +171,7 @@ export async function POST(request: NextRequest) {
       await prisma.contribution.update({
         where: { id: parsed.contributionId },
         data: {
-          status: "coding",
+          status: "reviewing",
           suggestedApproach: codeResult.suggested_approach || null,
         },
       });
@@ -284,6 +284,7 @@ export async function POST(request: NextRequest) {
         head: `${fork.owner.login}:${parsed.branchName}`,
         base: fork.default_branch,
         files,
+        commitMessage: generatedCode?.commitMessage,
       });
 
       // Update the draft PR record

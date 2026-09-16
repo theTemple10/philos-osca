@@ -88,7 +88,7 @@ Repository Context:
 ${repoContext.conventions ? `- Code Conventions: ${repoContext.conventions}` : ""}
 
 Existing files (use EXACT content shown, line numbers added for reference only, do not include them in output):
-${relevantFiles.map((f) => `\n--- ${f.path} ---\n${addLineNumbers(f.content.substring(0, 4000))}`).join("\n")}
+${relevantFiles.map((f) => `\n--- ${f.path} ---\n${addLineNumbers(f.content.substring(0, 6000))}`).join("\n")}
 
 Rules:
 1. Only modify files shown above, or create clearly-named new files if the issue requires one.

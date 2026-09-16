@@ -2,7 +2,7 @@
 
 > **Created:** 2026-09-07
 > **Branch:** main
-> **Status:** Active development — large feature set pending
+> **Status:** Active development — core pipeline fixed, remaining polish items pending
 
 ---
 
@@ -38,11 +38,15 @@
 
 ## 3. Known Issues (Pre-existing, Noted During Code Review)
 
-| Issue | Location | Description |
-|-------|----------|-------------|
-| Generated code not committed on submit | `src/app/api/contribute/route.ts:161-182` | The `submit` action calls `createPullRequest` with `files: []` — the AI-generated code from the `generate` step is never stored or applied. |
-| `findMatchingRepositories` not wired | `src/lib/ai/analyze.ts:160-183` | Function exists in lib but no API route calls it. Discover endpoint uses basic GitHub search instead. |
-| Rate limiter memory leak | `src/lib/rate-limit.ts:55-66` | Cleanup interval runs in serverless, which is ephemeral. Not a real issue on Vercel but worth noting. |
+| Issue | Location | Status |
+|-------|----------|--------|
+| Generated code not committed on submit | `src/app/api/contribute/route.ts` | **Fixed (Session 5)** — Phase 2/3: real file content fetched, stored in generatedCode, submitted to fork |
+| `findMatchingRepositories` not wired | `src/lib/ai/analyze.ts` | **Fixed (Session 5)** — Phase 4: wired into discover endpoint with fallback |
+| Rate limiter memory leak | `src/lib/rate-limit.ts` | Acknowledged — ephemeral on Vercel, not a real issue |
+| GitHub token exposed client-side | `src/lib/auth/config.ts` | **Fixed (Session 5)** — Phase 0: removed from session callback |
+| PR targets upstream instead of fork | `src/lib/github/pr.ts` | **Fixed (Session 5)** — Phase 3: commits go to fork, PR targets upstream |
+| Branch not created before commit | `src/lib/github/pr.ts` | **Fixed (Session 5)** — Phase 3: `createBranch` + `waitForForkReady` added |
+| `aiApiKey` stored in plaintext | `prisma/schema.prisma` | **Fixed (Session 5)** — Phase 5: AES-256-GCM encryption at rest |
 
 ---
 
@@ -50,172 +54,112 @@
 
 ### 4.1 Settings Page — AI Provider Integration
 
-**Priority:** HIGH — foundational change
-
-**Current state:** Shows OpenAI/Anthropic as radio buttons. Static warning says "set API key in env vars." API keys are global (`.env`), not per-user.
-
-**Target state:**
-- Users input their **own API key** directly on the settings page
-- Users choose which provider and model to use
-- If no paid key, offer **free providers** (Groq, MiMo, etc.)
-- Remove the env-var warning entirely
-- App is universally usable — each user brings their own key
-
-**Architectural impact:**
-- API keys move from global env vars to **per-user storage** in the database
-- `src/lib/ai/providers.ts` — must accept user-specific keys instead of `process.env`
-- `src/lib/ai/analyze.ts` — all AI functions must receive user's key/config
-- `prisma/schema.prisma` — User model needs fields for API key, provider, model preferences
-- `src/app/api/settings/route.ts` — must handle API key storage/retrieval
-- `src/app/(dashboard)/settings/page.tsx` — complete redesign of AI section
-
-**Providers to support:**
-- OpenAI (user brings key) — already integrated via `@ai-sdk/openai`
-- Anthropic (user brings key) — already integrated via `@ai-sdk/anthropic`
-- Groq (free tier, fast inference) — needs `@ai-sdk/groq` or OpenAI-compatible wrapper
-- MiMo / other free models — evaluate SDK support
-- OpenRouter (catch-all aggregator) — OpenAI-compatible API
-
-**New Prisma fields needed on User model:**
-```prisma
-aiApiKey        String?   // Encrypted API key
-aiProvider      String?   // "openai" | "anthropic" | "groq" | "mimo" | "openrouter"
-aiModel         String?   // Model ID
-```
+**Done (Session 4):** Per-user API keys, provider/model selection, client-side key validation, encrypted at rest (Session 5).
 
 ### 4.2 Settings — Additional Items
 
-- Theme preference (ties into dark mode)
-- Notification preferences
-- Data export/delete (privacy)
-- GitHub account connection status
-- Logo "OSS Contributor" should be clickable → `/dashboard`
+- **Done:** Theme preference (Session 3), Data export/delete (Session 4), GitHub account connection status (Session 4)
+- **Pending:** Notification preferences
 
 ### 4.3 Dashboard — Clickable Tiles
 
-**Current:** Three static `<Card>` components showing Repositories, Contributions, Pull Requests counts.
-
-**Target:** Each tile clickable → navigates to relevant page (`/repos`, `/contribute`, etc.) or shows detailed breakdown.
+**Done (Session 4):** Each tile navigates to relevant page.
 
 ### 4.4 Dashboard — Fix Average Proficiency
 
-**Current:** Shows "—" when `skillProfile` is null (because analysis never ran or failed).
-
-**Fix:** Ensure the analyze button works first (4.5), then the proficiency calculation at `dashboard/page.tsx:158-166` should work automatically.
+**Done (Session 4):** Works when skillProfile exists after analysis.
 
 ### 4.5 Dashboard — Fix "Analyze My Skills" Button
 
-**Current:** Calls `POST /api/analyze` with `{ type: "skills" }`. Likely fails because:
-1. No repos synced yet (user must visit `/repos` first)
-2. AI API key not configured
-3. Error is caught silently
-
-**Fix:**
-- Check if repos are synced before allowing analysis
-- Show clear error messages to user
-- Handle the case where no API key is configured (prompt user to set one or use free provider)
-- Show progress/loading state during analysis
+**Done (Session 4):** Error messages shown for missing repos/API key. Loading states added.
 
 ### 4.6 Discover Page — Skill-Based Matching
 
-**Current:** Basic GitHub keyword search from skill profile languages/frameworks.
+**Current:** Uses AI-driven `findMatchingRepositories()` with keyword fallback. Shows match-relevant results from parallel queries.
 
-**Target:** Smarter matching after repos are scanned:
-- Weight results by language match percentage
-- Filter by topic alignment
-- Show a "match score" on each repo card
-- Only show projects closely related to user's demonstrated skills
-
-**Files:** `src/app/api/repos/discover/route.ts`, `src/app/(dashboard)/repos/page.tsx`
+**Done (Session 5):**
+- `findMatchingRepositories()` wired into discover endpoint
+- Parallel query execution with deduplication
+- Fallback to skill-profile-based search if AI fails
+- Short-circuit with UI message if no profile/API key
 
 ### 4.7 Project Click → Issues → Contribution Workflow
 
-**Current:** Contribute page shows pre-created contributions. No way to browse issues from discovered projects.
+**Done (Session 4):** Inline modal on repos page for issue browsing.
 
-**Target flow:**
-1. Click a project on Discover page
-2. See available issues for that project (fetched from GitHub Issues API)
-3. Select an issue → enters contribution workflow
-4. AI generates code (or describes approach if too complex)
-5. Review → Submit PR
-
-**If code generation fails:** Produce a detailed contribution guide instead of failing silently.
-
-**New files needed:**
-- `src/app/(dashboard)/repos/[owner]/[repo]/page.tsx` — issue browser
-- `src/app/api/repos/[owner]/[repo]/issues/route.ts` — issues endpoint
-- Update `src/app/(dashboard)/contribute/page.tsx` — integrate with issue selection
-
-**Existing GitHub issue fetch:** `src/lib/github/repos.ts:75-92` — `fetchRepoIssues()`
+**Remaining:** Dedicated `repos/[owner]/[repo]/page.tsx` (LOW priority).
 
 ### 4.8 Contributions Page — History
 
-**Current:** `GET /api/contributions` returns all contributions. Contribute page shows them inline.
-
-**Target:** Dedicated page showing contribution history over time — status, PRs, outcomes.
-
-**New file:** `src/app/(dashboard)/history/page.tsx`
-**Update:** `src/app/(dashboard)/layout.tsx` — add to navigation
+**Done (Session 4):** Dedicated history page at `/history`.
 
 ### 4.9 Mobile Responsiveness + UX
 
-**Current:** Fixed sidebar (`w-64`). No mobile handling.
+**Done (Session 3/4):** Responsive sidebar, filter stacking, progress steps, error toasts, loading skeletons.
 
-**Target:**
-- Responsive sidebar (hamburger menu on mobile)
-- Breakpoint detection — suggest desktop for complex operations
-- Better error messages throughout
-- Loading states, empty states, success/error toasts
-- Quality of life improvements for usability
+**Remaining:** "Suggest desktop" banner for complex operations (MEDIUM priority).
 
 ### 4.10 Dark Mode
 
-**Target:**
-- System preference detection (`prefers-color-scheme`)
-- Manual toggle in settings or header
-- Tailwind `dark:` classes throughout
-- Consistent theming
-
-**Files:** `src/app/globals.css`, all components, `src/app/layout.tsx`
+**Done (Session 3):** Freecodecamp-inspired token-driven approach with semantic CSS variables. System preference detection, manual toggle, full dark: class coverage.
 
 ### 4.11 Extra Features (Nice-to-Have)
 
-- Toast notifications for actions (PR created, settings saved, etc.)
-- Loading skeletons instead of spinners
-- Keyboard shortcuts for power users
-- Contribution streak/stats visualization
-- Profile page with full skill breakdown
+**Done:**
+- Toast notifications (Session 3/4)
+- Loading skeletons (Session 3)
+- Profile page — pending (HIGH priority)
+- Contribution streak/stats visualization — pending (MEDIUM priority)
+- Keyboard shortcuts — pending (LOW priority)
 
 ---
 
 ## 5. Architecture Notes
 
-### Current Data Flow for AI Calls
+### AI Call Flow (After Session 5)
 
-```
-User clicks "Analyze Skills"
-  → POST /api/analyze { type: "skills" }
-    → analyzeUserSkills(userId)
-      → prisma.user.findUnique(userId) → get repos
-      → getDefaultProvider(user.preferredAiProvider, user.preferredAiModel)
-        → reads from process.env.OPENAI_API_KEY or ANTHROPIC_API_KEY
-      → generateText({ model: getAIProvider(config), prompt })
-      → prisma.user.update({ skillProfile: result })
-```
-
-**After per-user keys:**
 ```
 User clicks "Analyze Skills"
   → POST /api/analyze { type: "skills" }
     → analyzeUserSkills(userId)
       → prisma.user.findUnique(userId) → get repos + aiApiKey + aiProvider + aiModel
       → if (!user.aiApiKey) → return error "Please set your API key in Settings"
-      → getAIProvider({ provider: user.aiProvider, model: user.aiModel, apiKey: user.aiApiKey })
+      → decrypt(user.aiApiKey) → plaintext key
+      → getAIProvider({ provider, model, apiKey })
       → generateText({ model, prompt })
       → prisma.user.update({ skillProfile: result })
 ```
 
-### Auth Flow (Fixed)
+### Code Generation Flow (After Session 5)
+
+```
+User clicks "Generate Code"
+  → POST /api/contribute { action: "generate", contributionId }
+    → getRepoTree(token, owner, repo)           — fetch full file tree
+    → rankCandidateFiles(tree, issue)            — keyword pre-filter (no AI cost)
+    → getFileContents(token, owner, repo, paths) — fetch relevant file content
+    → fetchRepoDetails + fetchRepoLanguages      — repo metadata
+    → generateContributionCode(userId, issue, relevantFiles, repoContext)
+      → decrypt(user.aiApiKey)
+      → generateText with grounded prompt (real file content + line numbers)
+      → JSON: { files, commitMessage, prTitle, prBody, blockers }
+    → store in PullRequest.generatedCode (with base SHAs for staleness detection)
+```
+
+### PR Submission Flow (After Session 5)
+
+```
+User clicks "Submit PR"
+  → POST /api/contribute { action: "submit", contributionId, branchName }
+    → forkRepository(token, owner, repo)
+    → waitForForkReady(token, forkOwner, forkName, defaultBranch)
+    → createBranch(token, forkOwner, forkName, branchName, defaultBranch)
+    → createPullRequest(token, { owner: upstream, head: fork:branch, base: defaultBranch, files })
+      → createOrUpdateFiles on FORK (not upstream)
+      → pulls.create on upstream
+```
+
+### Auth Flow (Updated Session 5)
 
 ```
 User clicks "Sign in with GitHub"
@@ -227,11 +171,11 @@ User clicks "Sign in with GitHub"
   → jwt callback fires:
     → token.accessToken = account.access_token
   → session callback fires:
-    → session.accessToken = token.accessToken
+    → session.user.id = token.sub (NO accessToken on client session)
   → redirect to /dashboard
 ```
 
-No PrismaAdapter involved. JWT handles sessions. signIn callback handles user persistence.
+getGithubToken() reads accessToken from DB via prisma.user.findUnique, not from session.
 
 ---
 
@@ -240,22 +184,25 @@ No PrismaAdapter involved. JWT handles sessions. signIn callback handles user pe
 | File | Purpose |
 |------|---------|
 | `src/lib/auth/config.ts` | NextAuth config — providers, callbacks, JWT strategy |
-| `src/lib/auth/session.ts` | Session helpers — getSession, getGithubToken |
+| `src/lib/auth/session.ts` | Session helpers — getSession, getGithubToken (reads from DB) |
 | `src/lib/ai/providers.ts` | AI provider abstraction — getAIProvider, AVAILABLE_MODELS |
-| `src/lib/ai/analyze.ts` | AI analysis functions — analyzeUserSkills, generateContributionCode |
-| `src/lib/ai/prompts.ts` | Prompt templates for all AI calls |
+| `src/lib/ai/analyze.ts` | AI analysis functions — analyzeUserSkills, generateContributionCode (decrypts keys) |
+| `src/lib/ai/prompts.ts` | Prompt templates — includes line-numbered file content, blockers escape hatch |
 | `src/lib/github/repos.ts` | GitHub API — fetchUserRepos, searchRepositories, fetchRepoIssues |
-| `src/lib/github/pr.ts` | GitHub PR operations — forkRepository, createPullRequest |
+| `src/lib/github/pr.ts` | GitHub PR — forkRepository, createBranch, waitForForkReady, createPullRequest |
+| `src/lib/github/content.ts` | **New** — getRepoTree, getFileContent, getFileContents (repo content access layer) |
+| `src/lib/github/relevance.ts` | **New** — rankCandidateFiles (keyword pre-filter for file selection) |
+| `src/lib/crypto.ts` | **New** — encrypt/decrypt (AES-256-GCM for API key storage) |
 | `src/lib/db/index.ts` | Prisma client singleton |
 | `src/lib/rate-limit.ts` | In-memory rate limiter |
 | `src/middleware.ts` | Auth middleware — protects dashboard + API routes |
 | `prisma/schema.prisma` | Database schema — User, UserRepo, Contribution, PullRequest |
 | `src/app/api/analyze/route.ts` | POST/GET for skill analysis |
 | `src/app/api/repos/route.ts` | GET — sync user repos from GitHub |
-| `src/app/api/repos/discover/route.ts` | GET — discover matching repos |
-| `src/app/api/contribute/route.ts` | POST — create/generate/submit contributions |
+| `src/app/api/repos/discover/route.ts` | GET — AI-driven discovery with fallback |
+| `src/app/api/contribute/route.ts` | POST — create/generate/submit (wired to real content + fork logic) |
 | `src/app/api/contributions/route.ts` | GET — list user contributions |
-| `src/app/api/settings/route.ts` | GET/PUT — user settings |
+| `src/app/api/settings/route.ts` | GET/PUT — user settings (encrypts API keys on write) |
 | `src/app/(dashboard)/layout.tsx` | Dashboard layout — sidebar navigation |
 | `src/app/(dashboard)/dashboard/page.tsx` | Dashboard — stats, skill map, quick actions |
 | `src/app/(dashboard)/repos/page.tsx` | Discover page — repos + discovered projects |
@@ -266,16 +213,20 @@ No PrismaAdapter involved. JWT handles sessions. signIn callback handles user pe
 
 ## 7. Implementation Order (Suggested)
 
-1. **Per-user AI keys** — Foundation for everything else (4.1)
-2. **Settings page redesign** — API key input, provider selection (4.1, 4.2)
-3. **Fix Analyze button + proficiency** — Depends on AI keys working (4.4, 4.5)
-4. **Dashboard tile clicks** — Quick win (4.3)
-5. **Discover page improvements** — Skill-based matching (4.6)
-6. **Issue browsing** — New page, integrates with contribute flow (4.7)
-7. **Contributions history page** — New page (4.8)
-8. **Dark mode** — Tailwind dark classes + toggle (4.10)
-9. **Mobile responsiveness** — Responsive sidebar, breakpoints (4.9)
-10. **UX polish** — Toasts, loading states, error messages (4.9, 4.11)
+1. ~~**Per-user AI keys** — Foundation for everything else (4.1)~~ ✅ Session 4
+2. ~~**Settings page redesign** — API key input, provider selection (4.1, 4.2)~~ ✅ Session 4
+3. ~~**Fix Analyze button + proficiency** — Depends on AI keys working (4.4, 4.5)~~ ✅ Session 4
+4. ~~**Dashboard tile clicks** — Quick win (4.3)~~ ✅ Session 4
+5. ~~**Discover page improvements** — Skill-based matching (4.6)~~ ✅ Session 5
+6. ~~**Issue browsing** — New page, integrates with contribute flow (4.7)~~ ✅ Session 4
+7. ~~**Contributions history page** — New page (4.8)~~ ✅ Session 4
+8. ~~**Dark mode** — Tailwind dark classes + toggle (4.10)~~ ✅ Session 3
+9. ~~**Mobile responsiveness** — Responsive sidebar, breakpoints (4.9)~~ ✅ Session 3
+10. ~~**UX polish** — Toasts, loading states, error messages (4.9, 4.11)~~ ✅ Session 3/4
+11. ~~**Core pipeline fix** — analyze → discover → generate → submit (fix spec)~~ ✅ Session 5
+12. **Profile page** — Full skill breakdown (4.11)
+13. **Topic filtering** — Filter UI on discover page
+14. **Mobile suggest desktop** — Banner for complex operations
 
 ---
 
@@ -284,9 +235,9 @@ No PrismaAdapter involved. JWT handles sessions. signIn callback handles user pe
 | # | Question | Status |
 |---|----------|--------|
 | 1 | Which free AI providers? Groq is straightforward (OpenAI-compatible). MiMo needs evaluation. | Pending user input |
-| 2 | Encrypt API keys in DB or plain storage? | Pending user input |
-| 3 | Dashboard tile clicks — navigate to pages or show modals? | Pending user input |
-| 4 | Issue browsing — new page or modal on discover? | Pending user input |
+| 2 | Encrypt API keys in DB or plain storage? | **Resolved** — AES-256-GCM encryption via `ENCRYPTION_KEY` env var |
+| 3 | Dashboard tile clicks — navigate to pages or show modals? | **Resolved** — navigate to pages |
+| 4 | Issue browsing — new page or modal on discover? | **Resolved** — inline modal on repos page |
 | 5 | Mobile "suggest desktop" — dismissable banner or overlay? | Pending user input |
 
 ---
@@ -312,6 +263,16 @@ No PrismaAdapter involved. JWT handles sessions. signIn callback handles user pe
 - [x] Add ARIA labels and accessibility to all interactive elements
 - [x] Add theme preference selector in Settings page
 - [x] Remove unused @next-auth/prisma-adapter dependency
+
+### Session 5 Checklist
+
+- [x] Phase 0: Remove GitHub token from client-side session (security fix)
+- [x] Phase 1: Create repo content access layer (content.ts, relevance.ts)
+- [x] Phase 2: Diff-based code generation with grounded prompt
+- [x] Phase 3: Fix fork/branch/commit logic for PR submission
+- [x] Phase 4: Wire findMatchingRepositories() into discovery
+- [x] Phase 5: Encrypt aiApiKey at rest (AES-256-GCM)
+- [x] Verify: 0 TS errors, 25/25 tests passing, 0 lint errors
 
 ### Session 3 Work (2026-09-09)
 
@@ -393,10 +354,82 @@ Comprehensive fix/optimization/feature pass based on code review recommendations
 - `src/middleware.ts` — new route matchers
 - `src/lib/stores/dashboard-store.ts` — **new** Zustand store
 
+### Session 5 Work (2026-09-16) — Core Pipeline Fix Spec
+
+Executed all 6 phases from `oss-contributor-fix-spec.md`. Fixes the broken analyze → discover → generate → submit pipeline.
+
+#### Phase 0 — Security: Stop exposing GitHub token client-side
+- Removed `session.accessToken` from the NextAuth session callback (`config.ts`)
+- `getGithubToken()` now reads from DB via `prisma.user.findUnique` instead of from session
+- Removed `accessToken` from Session type augmentation
+- **Verification:** `GET /api/auth/session` no longer contains `accessToken`
+
+#### Phase 1 — Repo content access layer (new capability)
+- **New file:** `src/lib/github/content.ts` — `getRepoTree`, `getFileContent`, `getFileContents`
+  - Recursive file tree via GitHub Trees API (paths + SHAs, no content)
+  - Single/parallel file fetch with base64 decode
+- **New file:** `src/lib/github/relevance.ts` — `rankCandidateFiles`
+  - Keyword extraction from issue title/body (stopword-filtered)
+  - Scores files by keyword match in path
+  - Always includes high-signal root files (README, package.json)
+  - Returns top 12 candidates
+
+#### Phase 2 — Diff-based code generation
+- Replaced `generateCodePrompt` in `prompts.ts`:
+  - Now includes real file content with line numbers (reference only, not in output)
+  - `blockers` escape hatch — model can refuse instead of hallucinating
+  - Rules: minimal changes, only modify shown files, create new files only if needed
+- Wired real content into `contribute/route.ts` generate action:
+  - Parallel fetch: tree + repo details + languages
+  - `rankCandidateFiles` pre-filter → `getFileContents` → pass to `generateContributionCode`
+
+#### Phase 3 — Fix fork/branch/commit logic
+- **`pr.ts`** — New functions:
+  - `createBranch(accessToken, owner, repo, branchName, fromBranch)` — creates ref from base
+  - `waitForForkReady(accessToken, owner, repo, branch, { retries, delayMs })` — polls until fork ref exists
+- **`pr.ts`** — Fixed `createPullRequest`:
+  - Commits go to `forkOwner` (extracted from `head`), not `params.owner`
+  - PR creation still targets upstream
+- **`contribute/route.ts`** submit action:
+  - `forkRepository` → `waitForForkReady` → `createBranch` → `createPullRequest`
+  - Uses `fork.default_branch` instead of hardcoded `"main"`
+
+#### Phase 4 — Wire findMatchingRepositories() into discovery
+- `discover/route.ts` now calls `findMatchingRepositories(userId)` (AI-driven)
+- Falls back to skill-profile-based keyword search if AI call fails
+- Short-circuits to generic query if no `skillProfile` or `aiApiKey` (with UI message)
+- Added `dedupeByFullName` helper for parallel search results
+
+#### Phase 5 — Encrypt aiApiKey at rest
+- **New file:** `src/lib/crypto.ts` — AES-256-GCM encrypt/decrypt
+  - Packed format: `iv:authTag:ciphertext` (all base64)
+  - Key from `ENCRYPTION_KEY` env var (32-byte base64)
+- `settings/route.ts` — encrypts on `PUT`, never returns raw key
+- `analyze.ts` — decrypts at point of use (server-only)
+- `.env.example` updated with `ENCRYPTION_KEY` documentation
+
+#### Verification
+- **TypeScript:** 0 errors (`npx tsc --noEmit`)
+- **Tests:** 25/25 passing (`npm test`)
+- **Lint:** 0 errors (`npm run lint`) — 6 pre-existing warnings (all useEffect dependency arrays)
+
+#### Files Changed
+- `src/lib/auth/config.ts` — removed accessToken from session callback
+- `src/lib/auth/session.ts` — getGithubToken reads from DB, removed accessToken from Session type
+- `src/lib/ai/prompts.ts` — replaced generateCodePrompt with grounded version + blockers
+- `src/lib/ai/analyze.ts` — added decrypt import, all functions decrypt API key
+- `src/lib/github/pr.ts` — added createBranch, waitForForkReady, fixed createPullRequest to target fork
+- `src/lib/github/content.ts` — **new** repo content access layer
+- `src/lib/github/relevance.ts` — **new** keyword-based file relevance ranking
+- `src/lib/crypto.ts` — **new** AES-256-GCM encryption utility
+- `src/app/api/contribute/route.ts` — wired real content into generate, fixed submit flow
+- `src/app/api/repos/discover/route.ts` — wired findMatchingRepositories with fallback
+- `src/app/api/settings/route.ts` — encrypts API keys on write
+- `.env.example` — added ENCRYPTION_KEY documentation
+
 ### Remaining Work (Prioritized)
 
 #### HIGH Priority
-- [ ] Wire `findMatchingRepositories()` from analyze.ts into discover endpoint
 - [ ] Implement profile page with full skill breakdown (section 4.11)
 
 #### MEDIUM Priority
@@ -410,7 +443,6 @@ Comprehensive fix/optimization/feature pass based on code review recommendations
 - [ ] Keyboard shortcuts for power users (section 4.11)
 - [ ] Dedicated `repos/[owner]/[repo]/page.tsx` for issue browsing (vs. current inline modal)
 - [ ] Contribution guide fallback when code generation fails
-- [ ] Encrypt API keys in database (currently plaintext)
 
 ---
 
